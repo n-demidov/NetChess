@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.paint.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.canvas.*?>
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="480.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.demidov.netchess.client.controllers.window.MainWindowController">
+    <children>
+      <SplitPane fx:id="splitPane" dividerPositions="0.6598746081504702" minWidth="100" prefHeight="480.0" prefWidth="640.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="480.0" prefWidth="419.0">
+               <children>
+                  <TabPane prefHeight="480.0" prefWidth="418.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                    <tabs>
+                      <Tab closable="false" text="Лобби">
+                        <content>
+                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <VBox layoutX="14.0" layoutY="14.0" prefHeight="424.0" prefWidth="392.0">
+                                       <children>
+                                          <Label fx:id="lblOnlineUsers" text="Игроков онлайн:" />
+                                          <TableView fx:id="tableOnlineUsers" prefHeight="205.0" prefWidth="392.0">
+                                            <columns>
+                                              <TableColumn fx:id="columnName" prefWidth="75.0" text="Имя" />
+                                              <TableColumn fx:id="columnRank" prefWidth="75.0" text="Рейтинг" />
+                                              <TableColumn fx:id="columnPlaying" prefWidth="75.0" text="Статус" />
+                                              <TableColumn fx:id="columnInvited" prefWidth="75.0" text="Пригласить" />
+                                              <TableColumn fx:id="columnWins" prefWidth="75.0" text="Побед" />
+                                              <TableColumn fx:id="columnDefeats" prefWidth="75.0" text="Поражений" />
+                                              <TableColumn fx:id="columnDraws" prefWidth="75.0" text="Ничьих" />
+                                              <TableColumn fx:id="columnTimeOnServer" prefWidth="75.0" text="Провёл времени на сервере" />
+                                            </columns>
+                                          </TableView>
+                                          <Label fx:id="lblInvites" text="Полученные приглашения:">
+                                             <VBox.margin>
+                                                <Insets top="10.0" />
+                                             </VBox.margin>
+                                          </Label>
+                                          <TableView fx:id="tableInvites" prefHeight="146.0" prefWidth="392.0" VBox.vgrow="ALWAYS">
+                                             <columns>
+                                                <TableColumn fx:id="invColumnName" prefWidth="75.0" text="Имя" />
+                                                <TableColumn fx:id="invColumnRank" prefWidth="76.0" text="Рейтинг" />
+                                                <TableColumn fx:id="invColumnWins" text="Побед" />
+                                                <TableColumn fx:id="invColumnDefeats" prefWidth="75.0" text="Поражений" />
+                                                <TableColumn fx:id="invColumnDraws" prefWidth="75.0" text="Ничьих" />
+                                             </columns>
+                                             <columnResizePolicy>
+                                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                             </columnResizePolicy>
+                                          </TableView>
+                                          <HBox>
+                                             <children>
+                                                <Button fx:id="btnAcceptInvite" mnemonicParsing="false" onAction="#responseUserToPlay" prefWidth="75.0" text="Принять">
+                                                   <HBox.margin>
+                                                      <Insets right="5.0" top="5.0" />
+                                                   </HBox.margin>
+                                                </Button>
+                                                <Button fx:id="btnRejectInvite" mnemonicParsing="false" onAction="#responseUserToPlay" prefWidth="75.0" text="Отклонить">
+                                                   <HBox.margin>
+                                                      <Insets right="5.0" top="5.0" />
+                                                   </HBox.margin>
+                                                </Button>
+                                             </children>
+                                          </HBox>
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </AnchorPane>
+                        </content>
+                      </Tab>
+                      <Tab fx:id="tabGame" disable="true" text="Игра">
+                        <content>
+                          <AnchorPane fx:id="paneGame" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                        </content>
+                      </Tab>
+                    </tabs>
+                  </TabPane>
+               </children></AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="214.0" prefHeight="480.0" prefWidth="238.0">
+               <children>
+                  <VBox prefHeight="391.0" prefWidth="198.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <children>
+                        <Label fx:id="lblLogin" alignment="CENTER" minWidth="199.0" onMouseClicked="#showLogin" prefWidth="199.0" text="nickName" textFill="#101dab" underline="true">
+                           <VBox.margin>
+                              <Insets top="5.0" />
+                           </VBox.margin>
+                           <font>
+                              <Font name="System Bold" size="18.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </Label>
+                        <Label fx:id="lblLoginInfo" alignment="TOP_LEFT" contentDisplay="TOP" minWidth="199.0" prefHeight="63.0" prefWidth="199.0" text="nickName, ранг: 00&#10;00&#10;00">
+                           <VBox.margin>
+                              <Insets left="3.0" top="5.0" />
+                           </VBox.margin>
+                        </Label>
+                        <TextArea fx:id="txtChat" editable="false" prefHeight="350.0" prefWidth="158.0" wrapText="true">
+                           <VBox.margin>
+                              <Insets top="10.0" />
+                           </VBox.margin>
+                        </TextArea>
+                        <HBox>
+                           <children>
+                              <TextField fx:id="txtChatAdding" prefHeight="25.0" prefWidth="160.0" HBox.hgrow="ALWAYS">
+                                 <HBox.margin>
+                                    <Insets top="10.0" />
+                                 </HBox.margin>
+                              </TextField>
+                              <Button fx:id="btnChatSend" defaultButton="true" mnemonicParsing="false" onAction="#sendToChat" text="Ок">
+                                 <HBox.margin>
+                                    <Insets left="5.0" top="10.0" />
+                                 </HBox.margin>
+                              </Button>
+                           </children>
+                           <VBox.margin>
+                              <Insets bottom="10.0" />
+                           </VBox.margin>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+               <padding>
+                  <Insets left="5.0" right="5.0" />
+               </padding>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+    </children>
+</AnchorPane>
