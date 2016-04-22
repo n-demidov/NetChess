@@ -15,7 +15,7 @@ NetChess - a client-server application for Player vs Player games.
 
 Использованы следующие технологии: Netty, JavaFX, Maven, JUnit4, Slf4J.
 
-Применены следующие шаблоны: Observer (classes InvitationManager, GameChangedObservable), Decorator (class ConnectionManager), Singlton.
+Применены следующие шаблоны: Observer (classes InvitationManager, GameChangedObservable), Decorator (class ConnectionManager), Singleton.
 
 ####Для запуска:
 Программа состоит из трёх проектов: серверной части (NetChessServer), клиентской части (NetChessClient) и общей библиотеки (NetChessCommon).
