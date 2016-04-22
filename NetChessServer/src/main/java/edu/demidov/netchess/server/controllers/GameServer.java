@@ -220,10 +220,20 @@ public class GameServer implements InvitationObserver, GameChangedObserver
             final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.AuthError);
             errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
             connectionManager.sendAndClose(snm.getChannel(), errMsg);
+        } catch (final IllegalRequestParameter ex)
+        {
+            log.trace("process: illegal request parameter from client: {}, snm={}", ex.getLocalizedMessage(), snm);
+            final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.SomeError);
+            errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
+            connectionManager.sendAndClose(snm.getChannel(), errMsg);
+        } catch (final NoSuchAlgorithmException ex)
+        {
+            log.error(fatal, "process: no crypto algorythm found, snm={}", snm, ex);
         }
     }
 
-    private void processCreateUser(final ServerNetworkMessage snm) throws FileNotFoundException
+    private void processCreateUser(final ServerNetworkMessage snm) throws FileNotFoundException,
+            IllegalRequestParameter, NoSuchAlgorithmException
     {
         log.trace("processCreateUser snm={}", snm);
         try
@@ -235,20 +245,18 @@ public class GameServer implements InvitationObserver, GameChangedObserver
         
             final User user = connectionManager.createUser(name, passwordHash, snm.getChannel());
             userLogined(user);
-        } catch (final UserCreationException | IllegalRequestParameter ex)
+        } catch (final UserCreationException ex)
         {
             log.trace("{}, snm={}", ex.getLocalizedMessage(), snm);
             // Отправляем ошибку
             final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.CreateUserError);
             errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
             connectionManager.sendAndClose(snm.getChannel(), errMsg);
-        } catch (final NoSuchAlgorithmException ex)
-        {
-            log.error(fatal, "NoSuchAlgorithmException", ex);
         }
     }
 
-    private void processLoginUser(final ServerNetworkMessage snm)
+    private void processLoginUser(final ServerNetworkMessage snm) throws IllegalRequestParameter,
+            NoSuchAlgorithmException
     {
         log.trace("processLoginUser snm={}", snm);
         try
@@ -260,16 +268,13 @@ public class GameServer implements InvitationObserver, GameChangedObserver
 
             final User user = connectionManager.loginUser(name, passwordHash, snm.getChannel());
             userLogined(user);
-        } catch (final UserLoginException | IllegalRequestParameter ex)
+        } catch (final UserLoginException ex)
         {
             log.trace("{}, snm={}", ex.getLocalizedMessage(), snm);
             // Отправляем ошибку
             final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.LoginUserError);
             errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
             connectionManager.sendAndClose(snm.getChannel(), errMsg);
-        } catch (final NoSuchAlgorithmException ex)
-        {
-            log.error(fatal, "NoSuchAlgorithmException", ex);
         }
     }
     
@@ -281,28 +286,21 @@ public class GameServer implements InvitationObserver, GameChangedObserver
     }
 
     private void processChatSend(final ServerNetworkMessage snm, final User sender)
+            throws IllegalRequestParameter
     {
         log.trace("processChatSend snm={}, sender={}", snm, sender);
-        try
-        {
-            // Получаем текст из сообщения
-            final String receivedMessage = snm.getNetMsg().getParam(NetworkMessage.CHAT_TEXT, String.class);
-            
-            // Рассылаем сообщение всем пользователям on-line
-            chat.userChatted(sender, receivedMessage);
-        } catch (final IllegalRequestParameter ex)
-        {
-            log.trace("{}, snm={}", ex.getLocalizedMessage(), snm);
-            final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.SomeError);
-            errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
-            connectionManager.sendAndClose(snm.getChannel(), errMsg);
-        }
+        
+        // Получаем текст из сообщения
+        final String receivedMessage = snm.getNetMsg().getParam(NetworkMessage.CHAT_TEXT, String.class);
+
+        // Рассылаем сообщение всем пользователям on-line
+        chat.userChatted(sender, receivedMessage);
     }
     
     /**
-     * Проверяет установленное подключение.
-     * Если всё ок - возвращает найденного пользователя
-     * @param networkMessage 
+     * Проверяет авторизацию установленного подключения.
+     * Если всё ок - возвращает найденного пользователя, иначе выбрасывает исключение.
+     * Не проверяет авторизацию для некоторых типов запросов.
      */
     private User checkAuthConnection(final ServerNetworkMessage snm) throws AccessConnectedUserException
     {
@@ -350,7 +348,8 @@ public class GameServer implements InvitationObserver, GameChangedObserver
         connectionManager.sendToUser(sender, getGetOnlineUsersMsg(sender));
     }
 
-    private void processInviteToPlay(final ServerNetworkMessage snm, final User sender)
+    private void processInviteToPlay(final ServerNetworkMessage snm, final User sender) 
+            throws IllegalRequestParameter
     {
         log.trace("processInviteToPlay snm={}, sender={}", snm, sender);
         try
@@ -373,13 +372,7 @@ public class GameServer implements InvitationObserver, GameChangedObserver
         {
             // В случае ненахождения такого пользователя ничего не делаем
             log.warn("processInviteToPlay: NoSuchUserException snm={}, sender={}", snm, sender);
-        } catch (final IllegalRequestParameter ex)
-        {
-            log.trace("{}, snm={}", ex.getLocalizedMessage(), snm);
-            final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.SomeError);
-            errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
-            connectionManager.sendAndClose(snm.getChannel(), errMsg);
-        }   
+        }
     }
 
     private void processGetIncomingInviters(final User sender)
@@ -389,6 +382,7 @@ public class GameServer implements InvitationObserver, GameChangedObserver
     }
 
     private void processInviteToPlayResponse(final ServerNetworkMessage snm, final User sender)
+            throws IllegalRequestParameter
     {
         log.trace("processInviteToPlayResponse snm={}, sender={}", snm, sender);
         try
@@ -411,12 +405,6 @@ public class GameServer implements InvitationObserver, GameChangedObserver
         {
             // В случае ненахождения такого пользователя ничего не делаем
             log.warn("processInviteToPlayResponse: NoSuchUserException snm={}, sender={}", snm, sender);
-        } catch (final IllegalRequestParameter ex)
-        {
-            log.trace("{}, snm={}", ex.getLocalizedMessage(), snm);
-            final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.SomeError);
-            errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
-            connectionManager.sendAndClose(snm.getChannel(), errMsg);
         }
     }
 
@@ -427,6 +415,7 @@ public class GameServer implements InvitationObserver, GameChangedObserver
     }
     
     private void processDoAction(final ServerNetworkMessage snm, final User sender)
+            throws IllegalRequestParameter
     {
         log.trace("processDoAction snm={}, sender={}", snm, sender);
         try
@@ -442,12 +431,6 @@ public class GameServer implements InvitationObserver, GameChangedObserver
             final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.GameActionError);
             errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
             connectionManager.sendToUser(sender, errMsg);
-        } catch (final IllegalRequestParameter ex)
-        {
-            log.trace("{}, snm={}", ex.getLocalizedMessage(), snm);
-            final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.SomeError);
-            errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
-            connectionManager.sendAndClose(snm.getChannel(), errMsg);
         }
     }
     

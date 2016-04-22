@@ -5,6 +5,10 @@ import io.netty.channel.Channel;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * Класс содержит NetworkMessage, прсиланное с клиента.
+ * А также дополнительные свойства: io.netty.channel.Channel клиента и время получения сообщения.
+ */
 public class ServerNetworkMessage
 {
     
