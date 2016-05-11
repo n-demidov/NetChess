@@ -170,7 +170,7 @@ public class GameServer implements InvitationObserver, GameChangedObserver
         try
         {
             // Вызываем проверку подключения
-            final User sender = checkAuthConnection(snm);
+            checkAuthConnection(snm);
             
             // Обработка сообщения
             switch (netMsg.getType())
@@ -182,26 +182,26 @@ public class GameServer implements InvitationObserver, GameChangedObserver
                     processLoginUser(snm);
                     break;
                 case ChatSend:
-                    processChatSend(snm, sender);
+                    processChatSend(snm);
                     break;
                 case GetOnlineUsers:
-                    processGetOnlineUsers(sender);
+                    processGetOnlineUsers(snm);
                     break;
                     
                 case InviteToPlay:
-                    processInviteToPlay(snm, sender);
+                    processInviteToPlay(snm);
                     break;
                 case GetIncomingInviters:
-                    processGetIncomingInviters(sender);
+                    processGetIncomingInviters(snm);
                     break;
                 case InviteToPlayResponse:
-                    processInviteToPlayResponse(snm, sender);
+                    processInviteToPlayResponse(snm);
                     break;
                 case GetCurrentGame:
-                    processGetCurrentGame(sender);
+                    processGetCurrentGame(snm);
                     break;
                 case DoAction:
-                    processDoAction(snm, sender);
+                    processDoAction(snm);
                     break;
                     
                 case ConnectionClosed:
@@ -285,24 +285,25 @@ public class GameServer implements InvitationObserver, GameChangedObserver
         sendToUserAllInfo(user, true);
     }
 
-    private void processChatSend(final ServerNetworkMessage snm, final User sender)
+    private void processChatSend(final ServerNetworkMessage snm)
             throws IllegalRequestParameter
     {
-        log.trace("processChatSend snm={}, sender={}", snm, sender);
+        log.trace("processChatSend snm={}", snm);
         
         // Получаем текст из сообщения
         final String receivedMessage = snm.getNetMsg().getParam(NetworkMessage.CHAT_TEXT, String.class);
 
         // Рассылаем сообщение всем пользователям on-line
-        chat.userChatted(sender, receivedMessage);
+        chat.userChatted(snm.getSender(), receivedMessage);
     }
     
     /**
      * Проверяет авторизацию установленного подключения.
-     * Если всё ок - возвращает найденного пользователя, иначе выбрасывает исключение.
+     * Если всё ок - добавляет найденного пользователя в  экзмепляр ServerNetworkMessage,
+     * иначе выбрасывает исключение.
      * Не проверяет авторизацию для некоторых типов запросов.
      */
-    private User checkAuthConnection(final ServerNetworkMessage snm) throws AccessConnectedUserException
+    private void checkAuthConnection(final ServerNetworkMessage snm) throws AccessConnectedUserException
     {
         log.trace("checkAuthConnection snm={}", snm);
         final NetworkMessage.Type typeMsg = snm.getNetMsg().getType();
@@ -313,10 +314,10 @@ public class GameServer implements InvitationObserver, GameChangedObserver
             typeMsg == NetworkMessage.Type.ConnectionClosed)
         {
             log.trace("checkAuthConnection: cancel auth (typeMsg={}), snm={}", typeMsg, snm);
-            return null;
+            return;
         } 
 
-        return connectionManager.accessConnectedUser(snm.getChannel());
+        snm.setSender(connectionManager.accessConnectedUser(snm.getChannel()));
     }
 
     private void processConnectionClosed(final ServerNetworkMessage snm)
@@ -342,16 +343,17 @@ public class GameServer implements InvitationObserver, GameChangedObserver
         }
     }
     
-    private void processGetOnlineUsers(final User sender)
+    private void processGetOnlineUsers(final ServerNetworkMessage snm)
     {
-        log.trace("processGetOnlineUsers sender={}", sender);
+        log.trace("processGetOnlineUsers snm={}", snm);
+        final User sender = snm.getSender();
         connectionManager.sendToUser(sender, getGetOnlineUsersMsg(sender));
     }
 
-    private void processInviteToPlay(final ServerNetworkMessage snm, final User sender) 
+    private void processInviteToPlay(final ServerNetworkMessage snm) 
             throws IllegalRequestParameter
     {
-        log.trace("processInviteToPlay snm={}, sender={}", snm, sender);
+        log.trace("processInviteToPlay snm={}", snm);
         try
         {
             final String targetUserName = snm.getNetMsg().getParam(NetworkMessage.INVITE_NAME, String.class);
@@ -359,6 +361,7 @@ public class GameServer implements InvitationObserver, GameChangedObserver
             final boolean isAccept = type.equals(NetworkMessage.INVITE_TYPE_YES);
         
             final User targetUser = accountManager.getUser(targetUserName);
+            final User sender = snm.getSender();
             
             // Обновляем приглашения
             if (isAccept)
@@ -371,20 +374,21 @@ public class GameServer implements InvitationObserver, GameChangedObserver
         } catch (final NoSuchUserException ex)
         {
             // В случае ненахождения такого пользователя ничего не делаем
-            log.warn("processInviteToPlay: NoSuchUserException snm={}, sender={}", snm, sender);
+            log.warn("processInviteToPlay: NoSuchUserException snm={}", snm);
         }
     }
 
-    private void processGetIncomingInviters(final User sender)
+    private void processGetIncomingInviters(final ServerNetworkMessage snm)
     {
-        log.trace("processGetIncomingInviters sender={}", sender);
+        log.trace("processGetIncomingInviters snm={}", snm);
+        final User sender = snm.getSender();
         connectionManager.sendToUser(sender, getIncomingInvitersMsg(sender));
     }
 
-    private void processInviteToPlayResponse(final ServerNetworkMessage snm, final User sender)
+    private void processInviteToPlayResponse(final ServerNetworkMessage snm)
             throws IllegalRequestParameter
     {
-        log.trace("processInviteToPlayResponse snm={}, sender={}", snm, sender);
+        log.trace("processInviteToPlayResponse snm={}", snm);
         try
         {
             final String offerrerUserName = snm.getNetMsg().getParam(NetworkMessage.INVITE_NAME, String.class);
@@ -392,6 +396,7 @@ public class GameServer implements InvitationObserver, GameChangedObserver
             final boolean isAccept = type.equals(NetworkMessage.INVITE_TYPE_YES);
         
             final User offerrerUser = accountManager.getUser(offerrerUserName);
+            final User sender = snm.getSender();
             
             // Обновляем приглашения
             if (isAccept)
@@ -404,20 +409,22 @@ public class GameServer implements InvitationObserver, GameChangedObserver
         } catch (final NoSuchUserException ex)
         {
             // В случае ненахождения такого пользователя ничего не делаем
-            log.warn("processInviteToPlayResponse: NoSuchUserException snm={}, sender={}", snm, sender);
+            log.warn("processInviteToPlayResponse: NoSuchUserException snm={}", snm);
         }
     }
 
-    private void processGetCurrentGame(final User sender)
+    private void processGetCurrentGame(final ServerNetworkMessage snm)
     {
-        log.trace("processGetCurrentGame sender={}", sender);
+        log.trace("processGetCurrentGame snm={}", snm);
+        final User sender = snm.getSender();
         connectionManager.sendToUser(sender, getCurrentGameMsg(sender));
     }
     
-    private void processDoAction(final ServerNetworkMessage snm, final User sender)
+    private void processDoAction(final ServerNetworkMessage snm)
             throws IllegalRequestParameter
     {
-        log.trace("processDoAction snm={}, sender={}", snm, sender);
+        log.trace("processDoAction snm={}", snm);
+        final User sender = snm.getSender();
         try
         {
             // Достаём объект игрового действия
@@ -426,7 +433,7 @@ public class GameServer implements InvitationObserver, GameChangedObserver
             gameController.playerDoAction(sender, chessAction);
         } catch (final GameMoveException ex)
         {
-            log.trace("processDoAction: {}, snm={}, sender={}", ex.getLocalizedMessage(), snm, sender);
+            log.trace("processDoAction: {}, snm={}", ex.getLocalizedMessage(), snm);
             // Отправляем ошибку на клиент
             final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.GameActionError);
             errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
