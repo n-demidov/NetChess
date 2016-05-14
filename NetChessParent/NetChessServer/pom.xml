@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>edu.demidov</groupId>
-    <artifactId>NetChessClient</artifactId>
-    <version>1.0.0</version>
+    
+    <parent>
+        <groupId>edu.demidov</groupId>
+        <artifactId>NetChessParent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <artifactId>NetChessServer</artifactId>
     <packaging>jar</packaging>
     
-    <name>NetChessClient</name>
-    <description>Client-server application for Player vs Player games.</description>
-
+    <name>NetChessServer</name>
+    <description>Client-server application for Player vs Player games</description>
+    
     <properties>
-        <packageName>edu.demidov.netchess.client.controllers</packageName>
-        <mainClass>${packageName}.MainApp</mainClass>
+        <packageName>edu.demidov.netchess.server.controllers</packageName>
+        <mainClass>${packageName}.GameServer</mainClass>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-
+    
     <dependencies>
         <!-- NetChessCommon library for both client and server apps -->
         <dependency>
@@ -34,13 +38,5 @@
             <version>4.0.33.Final</version>
             <type>jar</type>
         </dependency>
-        
-        <!-- Logger Slf4J -->
-        <dependency> 
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.19</version>
-        </dependency>
     </dependencies>
-    
 </project>
