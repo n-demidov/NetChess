@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     
     <parent>
-        <groupId>edu.demidov</groupId>
+        <groupId>edu.demidov.netchess</groupId>
         <artifactId>NetChessParent</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -25,7 +25,7 @@
     <dependencies>
         <!-- NetChessCommon library for both client and server apps -->
         <dependency>
-            <groupId>edu.demidov</groupId>
+            <groupId>edu.demidov.netchess</groupId>
             <artifactId>NetChessCommon</artifactId>
             <version>1.0.0</version>
             <type>jar</type>
