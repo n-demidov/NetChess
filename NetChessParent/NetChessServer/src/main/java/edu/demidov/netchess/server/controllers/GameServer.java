@@ -103,7 +103,7 @@ public class GameServer implements InvitationObserver
             connectionManager.manageConnections();
             inviteManager.checkTTLs();          // Вызываем обработчик временем жизни приглашений
             gameManager.manageGamesTime();      // Вызываем обработчик времени партий
-            clientUpdater.manageSendInfoForOnlineUsers();
+            clientUpdater.checkSendingUpdates();
 
             // Усыпляем поток
             Thread.sleep(SLEEP);

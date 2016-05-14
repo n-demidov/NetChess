@@ -63,7 +63,7 @@ public class ClientUpdater implements GameChangedObserver
      * Периодически рассылает онлайн-пользователям обновления информации.
      * Класс ClientUpdater сам учитывает время, метод можно вызывать кажду игровую итерацию.
      */
-    public void manageSendInfoForOnlineUsers()
+    public void checkSendingUpdates()
     {
         if (nextLaunch.before(Calendar.getInstance().getTime()))
         {
