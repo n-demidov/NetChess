@@ -74,17 +74,29 @@ public class MessageHandlersDispatcher
      * Обрабатывает сообщение (ServerNetworkMessage).
      * Ищет и вызывает нужный обработчик для сообщения, если нужно - проверяет авторизацию.
      * @param snm 
-     * @throws edu.demidov.netchess.common.model.exceptions.IllegalRequestParameter 
-     * @throws edu.demidov.netchess.server.model.exceptions.AccessConnectedUserException 
      */
-    public void process(final ServerNetworkMessage snm) throws IllegalRequestParameter,
-            AccessConnectedUserException
+    public void process(final ServerNetworkMessage snm)
     {
-        // Вызываем проверку авторизации для канала
-        checkAuthConnection(snm);
-        
-        // Ищем нужный обработчик клиентского сообщения
-        dispatchMessageToHandler(snm);
+        log.trace("process snm={}", snm);
+        try
+        {
+            // Вызываем проверку авторизации для канала
+            checkAuthConnection(snm);
+            // Ищем нужный обработчик клиентского сообщения
+            dispatchMessageToHandler(snm);
+        } catch (final AccessConnectedUserException ex)
+        {
+            // Отправляем ошибку
+            final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.AuthError);
+            errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
+            connectionManager.sendAndClose(snm.getChannel(), errMsg);
+        } catch (final IllegalRequestParameter ex)
+        {
+            log.trace("process: illegal request parameter from client: {}, snm={}", ex.getLocalizedMessage(), snm);
+            final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.SomeError);
+            errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
+            connectionManager.sendAndClose(snm.getChannel(), errMsg);
+        }
     }
     
     /**

@@ -96,7 +96,7 @@ public class GameServer implements InvitationObserver
             {
                 final ServerNetworkMessage snm = messageQueue.takeMessage();
                 log.trace("from messageQueue taken {}", snm);
-                process(snm);
+                handlersDispatcher.process(snm);    // Обрабатывает входящее сообщение
             }
             log.trace("messageQueue is empty");
             
@@ -137,27 +137,4 @@ public class GameServer implements InvitationObserver
         }
     }
 
-    // Обрабатывает входящее сообщение
-    private void process(final ServerNetworkMessage snm)
-    {
-        log.trace("process snm={}", snm);
-        
-        try
-        {
-            handlersDispatcher.process(snm);
-        } catch (final AccessConnectedUserException ex)
-        {
-            // Отправляем ошибку
-            final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.AuthError);
-            errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
-            connectionManager.sendAndClose(snm.getChannel(), errMsg);
-        } catch (final IllegalRequestParameter ex)
-        {
-            log.trace("process: illegal request parameter from client: {}, snm={}", ex.getLocalizedMessage(), snm);
-            final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.SomeError);
-            errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
-            connectionManager.sendAndClose(snm.getChannel(), errMsg);
-        }
-    }
-    
 }
