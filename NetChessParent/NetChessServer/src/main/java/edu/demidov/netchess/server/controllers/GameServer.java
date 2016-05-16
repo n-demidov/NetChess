@@ -1,10 +1,7 @@
 package edu.demidov.netchess.server.controllers;
 
-import edu.demidov.netchess.common.model.exceptions.IllegalRequestParameter;
 import edu.demidov.netchess.common.model.network.MessageQueue;
-import edu.demidov.netchess.common.model.network.NetworkMessage;
 import edu.demidov.netchess.server.controllers.game.chess.GameController;
-import edu.demidov.netchess.server.model.exceptions.AccessConnectedUserException;
 import edu.demidov.netchess.server.model.exceptions.OneOfUserIsPlayingException;
 import edu.demidov.netchess.server.model.game.GameManager;
 import edu.demidov.netchess.server.model.invitations.InvitationManager;
@@ -16,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; 
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
-import edu.demidov.netchess.server.controllers.handlers.MessageHandlersDispatcher;
 import edu.demidov.netchess.server.model.users.User;
 
 public class GameServer implements InvitationObserver

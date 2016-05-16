@@ -1,7 +1,19 @@
-package edu.demidov.netchess.server.controllers.handlers;
+package edu.demidov.netchess.server.controllers;
 
 import edu.demidov.netchess.common.model.exceptions.IllegalRequestParameter;
 import edu.demidov.netchess.common.model.network.NetworkMessage;
+import edu.demidov.netchess.server.controllers.handlers.ChatSendHandler;
+import edu.demidov.netchess.server.controllers.handlers.ConnectionClosedHandler;
+import edu.demidov.netchess.server.controllers.handlers.ConnectionOpenedHandler;
+import edu.demidov.netchess.server.controllers.handlers.CreateUserHandler;
+import edu.demidov.netchess.server.controllers.handlers.DoActionHandler;
+import edu.demidov.netchess.server.controllers.handlers.GetCurrentGameHandler;
+import edu.demidov.netchess.server.controllers.handlers.GetIncomingInvitersHandler;
+import edu.demidov.netchess.server.controllers.handlers.GetOnlineUsersHandler;
+import edu.demidov.netchess.server.controllers.handlers.InviteToPlayHandler;
+import edu.demidov.netchess.server.controllers.handlers.InviteToPlayResponseHandler;
+import edu.demidov.netchess.server.controllers.handlers.LoginUserHandler;
+import edu.demidov.netchess.server.controllers.handlers.NetworkMessageHandler;
 import edu.demidov.netchess.server.model.exceptions.AccessConnectedUserException;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.network.ServerNetworkMessage;
