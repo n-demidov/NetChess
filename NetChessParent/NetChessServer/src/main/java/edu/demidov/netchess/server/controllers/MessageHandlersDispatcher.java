@@ -37,7 +37,7 @@ public class MessageHandlersDispatcher
     private final ConnectionManager connectionManager = ConnectionManager.getInstance();
     
     // Таблица соответствий типов сообщений (NetworkMessage) и обработчиков для них
-    public static final Map<NetworkMessage.Type, NetworkMessageHandler> HANDLERS;
+    private static final Map<NetworkMessage.Type, NetworkMessageHandler> HANDLERS;
     
     // Типы сообщений, для которых не надо проверять атворизацию. Для них sender будет null в ServerNetworkMessage.
     private static final List<NetworkMessage.Type> EXCLUDED_CHECK_AUTH;
@@ -140,9 +140,9 @@ public class MessageHandlersDispatcher
         log.trace("dispatchMessage snm={}", snm);
         final NetworkMessage.Type msgType = snm.getNetMsg().getType();
         
-        if (MessageHandlersDispatcher.HANDLERS.containsKey(msgType))
+        if (HANDLERS.containsKey(msgType))
         {
-            MessageHandlersDispatcher.HANDLERS.get(msgType).process(snm);
+            HANDLERS.get(msgType).process(snm);
         } else
         {
             log.error(fatal, "process: can't find handler for '{}' NetworkMessage.Type"
