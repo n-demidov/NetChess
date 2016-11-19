@@ -43,7 +43,7 @@ public class ChessLogicImpl implements ChessLogic
     private static ChessLogicImpl instance;
     private final static Logger log = LoggerFactory.getLogger(ChessLogicImpl.class);
 
-    public static synchronized ChessLogic getInstance()
+    public static synchronized ChessLogicImpl getInstance()
     {
         if (instance == null)
         {
@@ -104,10 +104,12 @@ public class ChessLogicImpl implements ChessLogic
                     RANDOM.nextInt(RANDOM_ID_MAX),
                     field,
                     chessPlayers);
-        } catch (final InvalidBoardSizeException | NoNextPlayerFoundException | InvalidPointException e) {
+        } catch (final InvalidBoardSizeException | NoNextPlayerFoundException | InvalidPointException e)
+        {
             log.error("Exception, ", e);
         }
 
+        assert game != null;
         return game;
     }
 
@@ -146,9 +148,10 @@ public class ChessLogicImpl implements ChessLogic
 
     @Override
     public void playerChooseFigureInsteadPawn(final ChessPlayer player,
-                                              final ChessGame game, final ChessFigure.Type chosenFigureType) throws GameMoveException
+                         final ChessGame game, final ChessFigure.Type chosenFigureType) throws GameMoveException
     {
         log.trace("playerChooseFigureInsteadPawn player={}, game={}, chosenFigureType={}", player, game, chosenFigureType);
+
         try
         {
             final long currentMoveTime = countCurrentMoveMilliseconds(game);  // Подсчитываем время текущего хода
@@ -235,13 +238,14 @@ public class ChessLogicImpl implements ChessLogic
     public void checkGameForEndByTime(final ChessGame game) throws NoNextPlayerFoundException
     {
         log.trace("checkGameForEndByTime game={}", game);
+
         if (game.isFinished()) return;
 
         final ChessPlayer currentPlayer = game.getCurrentPlayer();
         if (currentPlayer == null) return;
 
         // Время текущего хода
-        final long currentMoveTime = Calendar.getInstance().getTime().getTime() - game.getCurrentMoveStarted().getTime();
+        final long currentMoveTime = countCurrentMoveMilliseconds(game);
 
         // Оставшееся время текущего игрока
         final long playerLeftTime = currentPlayer.getTimeLeft() - currentMoveTime;
