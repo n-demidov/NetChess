@@ -38,5 +38,10 @@
             <version>4.0.33.Final</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>edu.demidov.netchess</groupId>
+            <artifactId>NetChessGame</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 </project>

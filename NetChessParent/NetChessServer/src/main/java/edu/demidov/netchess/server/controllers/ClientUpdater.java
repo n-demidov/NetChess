@@ -4,8 +4,7 @@ import edu.demidov.netchess.common.model.game.chess.ChessGame;
 import edu.demidov.netchess.common.model.network.NetworkMessage;
 import edu.demidov.netchess.common.model.users.UserProfile;
 import edu.demidov.netchess.server.model.Options;
-import edu.demidov.netchess.server.model.game.GameChangedObserver;
-import edu.demidov.netchess.server.model.game.GameManager;
+import edu.demidov.netchess.server.model.game.ChessGames;
 import edu.demidov.netchess.server.model.invitations.InvitationManager;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.users.User;
@@ -19,17 +18,15 @@ import org.slf4j.LoggerFactory;
 /**
  * Класс отправляет обновления на клиент
  */
-public class ClientUpdater implements GameChangedObserver
+public class ClientUpdater
 {
-    
-    private Date nextLaunch = Calendar.getInstance().getTime();
-    
+    private static ClientUpdater instance;
+    private static final Logger log = LoggerFactory.getLogger(ClientUpdater.class);
+
     private final ConnectionManager connectionManager = ConnectionManager.getInstance();
     private final InvitationManager inviteManager = InvitationManager.getInstance();
-    private final GameManager gameManager = GameManager.getInstance();
-    
-    private static ClientUpdater instance;
-    private final static Logger log = LoggerFactory.getLogger(ClientUpdater.class);
+    private ChessGames chessGames;
+    private Date nextLaunch = Calendar.getInstance().getTime();
     
     public static synchronized ClientUpdater getInstance()
     {
@@ -39,6 +36,10 @@ public class ClientUpdater implements GameChangedObserver
         }
         return instance;
     }
+
+    public void setChessGames(final ChessGames chessGames) {
+        this.chessGames = chessGames;
+    }
     
     private ClientUpdater() {}
 
@@ -47,16 +48,18 @@ public class ClientUpdater implements GameChangedObserver
      * Метод рассылает обновленный объект игры игрокам.
      * @param game 
      */
-    @Override
     public void gameChanged(final ChessGame game)
     {
         log.debug("gameChanged game={}", game);
+
         // Отправляет игру всем игрокам
         final NetworkMessage gameMsg = new NetworkMessage(NetworkMessage.Type.SendCurrentGame);
         gameMsg.put(NetworkMessage.CURRENT_GAME, game);
 
-        for (final User playingUser : gameManager.getPlayingUsers(game))
+        for (final User playingUser : chessGames.getPlayingUsers(game))
+        {
             connectionManager.sendToUser(playingUser, gameMsg);
+        }
     }
     
     /**
@@ -122,7 +125,7 @@ public class ClientUpdater implements GameChangedObserver
                 onlineUserProfiles.add(userProfile(
                         user,
                         inviteManager.isInvited(forUser, user),
-                        gameManager.isUserPlaying(user)
+                        chessGames.isUserPlaying(user)
                 ));
             }
         }
@@ -150,7 +153,7 @@ public class ClientUpdater implements GameChangedObserver
             userProfilesInvites.add(userProfile(
                         inviter,
                         inviteManager.isInvited(user, inviter),
-                        gameManager.isUserPlaying(inviter))
+                        chessGames.isUserPlaying(inviter))
             );
         }
         
@@ -168,7 +171,7 @@ public class ClientUpdater implements GameChangedObserver
     public NetworkMessage getCurrentGameMsg(final User user)
     {
         log.trace("getCurrentGameMsg user={}", user);
-        final ChessGame game = gameManager.getCurrentGame(user);
+        final ChessGame game = chessGames.getCurrentGame(user);
         
         final NetworkMessage gameMsg = new NetworkMessage(NetworkMessage.Type.SendCurrentGame);
         gameMsg.put(NetworkMessage.CURRENT_GAME, game);

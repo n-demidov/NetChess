@@ -6,7 +6,7 @@ import edu.demidov.netchess.server.controllers.handlers.ChatSendHandler;
 import edu.demidov.netchess.server.controllers.handlers.ConnectionClosedHandler;
 import edu.demidov.netchess.server.controllers.handlers.ConnectionOpenedHandler;
 import edu.demidov.netchess.server.controllers.handlers.CreateUserHandler;
-import edu.demidov.netchess.server.controllers.handlers.DoActionHandler;
+import edu.demidov.netchess.server.controllers.handlers.GameActionHandler;
 import edu.demidov.netchess.server.controllers.handlers.GetCurrentGameHandler;
 import edu.demidov.netchess.server.controllers.handlers.GetIncomingInvitersHandler;
 import edu.demidov.netchess.server.controllers.handlers.GetOnlineUsersHandler;
@@ -59,7 +59,7 @@ public class MessageHandlersDispatcher
         HANDLERS.put(NetworkMessage.Type.InviteToPlayResponse, InviteToPlayResponseHandler.getInstance());
         
         HANDLERS.put(NetworkMessage.Type.GetCurrentGame, GetCurrentGameHandler.getInstance());
-        HANDLERS.put(NetworkMessage.Type.DoAction, DoActionHandler.getInstance());
+        HANDLERS.put(NetworkMessage.Type.DoAction, GameActionHandler.getInstance());
         
         HANDLERS.put(NetworkMessage.Type.ConnectionClosed, ConnectionClosedHandler.getInstance());
         HANDLERS.put(NetworkMessage.Type.ConnectionOpened, ConnectionOpenedHandler.getInstance());

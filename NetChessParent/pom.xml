@@ -12,6 +12,7 @@
     
     <modules>
         <module>NetChessCommon</module>
+        <module>NetChessGame</module>
         <module>NetChessServer</module>
         <module>NetChessClient</module>
     </modules>

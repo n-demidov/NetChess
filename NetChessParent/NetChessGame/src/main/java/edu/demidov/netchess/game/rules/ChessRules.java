@@ -1,4 +1,4 @@
-package edu.demidov.netchess.server.model.game;
+package edu.demidov.netchess.game.rules;
 
 import edu.demidov.netchess.common.model.exceptions.game.chess.GameMoveException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.InvalidBoardSizeException;
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Класс отвечае тза проверку шахматных правил
  */
-public class ChessRuleChecker
+public class ChessRules
 {
     private static final Point[] DELTA_KNIGHT_MOVES;                        // Смещения возможных ходов коня
     private static final Point[] FORWARD_VECTOR_ATTACK_OFFSETS;             // Смещения для прямых линий
@@ -28,9 +28,9 @@ public class ChessRuleChecker
     private final static String NOT_YOUR_FIGURE_EXCEPTION = "Вы ходите не своей фигурой";
     private static final String COORDINATES_EXCEPTION = "Ошибка в координатах";
     private static final String CHECK_WARNING_EXCEPTION = "Ход невозможен, так как приведет к шаху";
-    private final static Logger log = LoggerFactory.getLogger(ChessRuleChecker.class);
-    
-    private static ChessRuleChecker instance;
+
+    private final static Logger log = LoggerFactory.getLogger(ChessRules.class);
+    private static ChessRules instance;
 
     static
     {
@@ -58,16 +58,16 @@ public class ChessRuleChecker
         DIAGONAL_VECTOR_ATTACK_OFFSETS[3] = new Point(-1, -1);
     }
     
-    public static synchronized ChessRuleChecker getInstance()
+    public static synchronized ChessRules getInstance()
     {
         if (instance == null)
         {
-            instance = new ChessRuleChecker();
+            instance = new ChessRules();
         }
         return instance;
     }
 
-    private ChessRuleChecker() {}
+    private ChessRules() {}
     
     public boolean isMoveCorrect(final ChessColor color, final ChessField field,
             final Point fromPoint, final Point toPoint) throws GameMoveException, NoKingOnFieldException
@@ -634,5 +634,4 @@ public class ChessRuleChecker
         
         return false;
     }
-    
 }

@@ -1,11 +1,10 @@
 package edu.demidov.netchess.server.controllers;
 
 import edu.demidov.netchess.common.model.network.MessageQueue;
-import edu.demidov.netchess.server.controllers.game.chess.GameController;
-import edu.demidov.netchess.server.model.exceptions.OneOfUserIsPlayingException;
-import edu.demidov.netchess.server.model.game.GameManager;
+import edu.demidov.netchess.game.logic.api.ChessLogic;
+import edu.demidov.netchess.game.logic.impl.ChessLogicImpl;
+import edu.demidov.netchess.server.model.game.ChessGames;
 import edu.demidov.netchess.server.model.invitations.InvitationManager;
-import edu.demidov.netchess.server.model.invitations.InvitationObserver;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.network.ServerNetworkMessage;
 import edu.demidov.netchess.server.model.network.netty.NettyServer;
@@ -13,11 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; 
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
-import edu.demidov.netchess.server.model.users.User;
 
-public class GameServer implements InvitationObserver
+public class GameServer
 {
-
     private static final long SLEEP = 1000L;
     
     private final NettyServer nettyServer;
@@ -25,8 +22,8 @@ public class GameServer implements InvitationObserver
     private final MessageHandlersDispatcher handlersDispatcher;
     private final ConnectionManager connectionManager;
     private final InvitationManager inviteManager;
-    private final GameController gameController;
-    private final GameManager gameManager;
+    private final ChessGames chessGames;
+    private final ChessLogic gameLogic;
     private final ClientUpdater clientUpdater;
     
     private final static Logger log = LoggerFactory.getLogger(GameServer.class);
@@ -52,9 +49,10 @@ public class GameServer implements InvitationObserver
         handlersDispatcher = MessageHandlersDispatcher.getInstance();
         connectionManager = ConnectionManager.getInstance();
         inviteManager = InvitationManager.getInstance();
-        gameController = GameController.getInstance();
-        gameManager = GameManager.getInstance();
+        chessGames = ChessGames.getInstance();
+        gameLogic = ChessLogicImpl.getInstance();
         clientUpdater = ClientUpdater.getInstance();
+        clientUpdater.setChessGames(chessGames);
     }
     
     public static void main(final String[] args)
@@ -77,9 +75,10 @@ public class GameServer implements InvitationObserver
     public void start() throws InterruptedException
     {
         log.info("start");
-        
-        inviteManager.addListener(this);
-        gameManager.addListener(clientUpdater);
+
+        inviteManager.addListener(chessGames);
+        gameLogic.addListener(chessGames);
+
         nettyServer.run();
 
         // Запускаем цикл по обработке сообщений
@@ -98,7 +97,7 @@ public class GameServer implements InvitationObserver
             
             connectionManager.manageConnections();
             inviteManager.checkTTLs();          // Вызываем обработчик временем жизни приглашений
-            gameManager.manageGamesTime();      // Вызываем обработчик времени партий
+            chessGames.manageGamesTime();      // Вызываем обработчик времени партий
             clientUpdater.checkSendingUpdates();
 
             // Усыпляем поток
@@ -108,29 +107,4 @@ public class GameServer implements InvitationObserver
         // Закрываем NettyServer
         nettyServer.stop();
     }
-    
-    /**
-     * Событие вызывается, когда два игрока договорились сыграть друг с другом
-     * @param player1
-     * @param player2 
-     */
-    @Override
-    public void usersAgreed(final User player1, final User player2)
-    {
-        log.debug("usersAgreed player1={}, player2={}", player1, player2);
-        try
-        {
-            // Если один из игроков не в сети - игру запускать не надо
-            if (!connectionManager.isUserOnline(player1) ||
-                !connectionManager.isUserOnline(player2))
-                return;
-            
-            gameController.startGame(player1, player2);
-        } catch (final OneOfUserIsPlayingException ex)
-        {
-            // Если один из игроков играет - ничего не делаем
-            log.trace("usersAgreed: one of user already playing - cancel new game,  player1={}, player2={}", player1, player2);
-        }
-    }
-
 }
