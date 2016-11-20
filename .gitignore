@@ -24,7 +24,7 @@ nbactions.xml
 hs_err_pid*
 
 # NetChess specific files #
-*.log
+*.log*
 registered_users.xml
 
 # IDEA
