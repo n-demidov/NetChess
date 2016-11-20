@@ -10,6 +10,7 @@ import edu.demidov.netchess.common.model.game.chess.ChessFigure;
 import edu.demidov.netchess.common.model.game.chess.ChessGame;
 import edu.demidov.netchess.common.model.game.chess.ChessPlayer;
 import edu.demidov.netchess.game.rules.ChessRules;
+import edu.demidov.netchess.game.rules.impl.ChessRulesImpl;
 import edu.demidov.netchess.game.logic.api.ChessLogic;
 import edu.demidov.netchess.game.logic.api.ChessLogicObserver;
 import edu.demidov.netchess.utils.Point;
@@ -41,7 +42,7 @@ public class ChessLogicImpl implements ChessLogic
     private static final Logger log = LoggerFactory.getLogger(ChessLogicImpl.class);
     private static ChessLogicImpl instance;
     private final List<ChessLogicObserver> listeners;
-    private final ChessRules chessRules = new ChessRules();
+    private final ChessRules chessRules = new ChessRulesImpl();
 
     public static synchronized ChessLogicImpl getInstance()
     {
