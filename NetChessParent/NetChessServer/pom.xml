@@ -15,7 +15,7 @@
     
     <properties>
         <packageName>edu.demidov.netchess.server.controllers</packageName>
-        <mainClass>${packageName}.GameServer</mainClass>
+        <mainClass>${packageName}.NetChessServer</mainClass>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
         <maven.compiler.source>1.8</maven.compiler.source>

@@ -3,7 +3,6 @@ package edu.demidov.netchess.server.controllers.handlers;
 import edu.demidov.netchess.common.model.exceptions.IllegalRequestParameter;
 import edu.demidov.netchess.common.model.network.NetworkMessage;
 import edu.demidov.netchess.server.controllers.ClientUpdater;
-import edu.demidov.netchess.server.controllers.GameServer;
 import edu.demidov.netchess.server.model.exceptions.UserLoginException;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.network.ServerNetworkMessage;

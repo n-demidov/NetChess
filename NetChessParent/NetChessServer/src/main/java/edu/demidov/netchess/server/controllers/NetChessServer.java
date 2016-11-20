@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-public class GameServer
+public class NetChessServer
 {
     private static final long SLEEP = 1000L;
     
@@ -27,22 +27,22 @@ public class GameServer
     private final ChessLogic gameLogic;
     private final ClientUpdater clientUpdater;
     
-    private final static Logger log = LoggerFactory.getLogger(GameServer.class);
+    private final static Logger log = LoggerFactory.getLogger(NetChessServer.class);
     private final static Marker fatal = MarkerFactory.getMarker("FATAL");
-    private static GameServer instance;
+    private static NetChessServer instance;
 
-    public static synchronized GameServer getInstance()
+    public static synchronized NetChessServer getInstance()
     {
         if (instance == null)
         {
-            instance = new GameServer();
+            instance = new NetChessServer();
         }
         return instance;
     }
     
-    private GameServer()
+    private NetChessServer()
     {
-        log.info("GameServer");
+        log.info("NetChessServer");
         
         // Инициилизация объектов
         inviteManager = new Invitations(
@@ -65,7 +65,7 @@ public class GameServer
     {
         try
         {
-            GameServer.getInstance().start();
+            NetChessServer.getInstance().start();
         } catch (final InterruptedException ex)
         {
             log.error(fatal, "main args={}", args, ex);
