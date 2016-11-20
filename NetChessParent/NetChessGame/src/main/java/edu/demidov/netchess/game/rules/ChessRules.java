@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Класс отвечае тза проверку шахматных правил
+ * Класс отвечает за проверку шахматных правил
  */
 public class ChessRules
 {
@@ -22,15 +22,14 @@ public class ChessRules
     private static final Point[] FORWARD_VECTOR_ATTACK_OFFSETS;             // Смещения для прямых линий
     private static final Point[] DIAGONAL_VECTOR_ATTACK_OFFSETS;            // Смещения для диагональных линий
     private static final int WHITE_PAWN_LINE = 6, BLACK_PAWN_LINE = 1;      // С каких полей пешка может пройти вперёд на 2 клетки
-    
-    public final static String ILLEGAL_MOVE_EXCEPTION = "Неверный ход";
-    private final static String SAME_CELL_EXCEPTION = "Нельзя ходить в ту же клетку";
-    private final static String NOT_YOUR_FIGURE_EXCEPTION = "Вы ходите не своей фигурой";
+
+    private static final String ILLEGAL_MOVE_EXCEPTION = "Неверный ход";
+    private static final String SAME_CELL_EXCEPTION = "Нельзя ходить в ту же клетку";
+    private static final String NOT_YOUR_FIGURE_EXCEPTION = "Вы ходите не своей фигурой";
     private static final String COORDINATES_EXCEPTION = "Ошибка в координатах";
     private static final String CHECK_WARNING_EXCEPTION = "Ход невозможен, так как приведет к шаху";
 
-    private final static Logger log = LoggerFactory.getLogger(ChessRules.class);
-    private static ChessRules instance;
+    private static final Logger log = LoggerFactory.getLogger(ChessRules.class);
 
     static
     {
@@ -57,18 +56,7 @@ public class ChessRules
         DIAGONAL_VECTOR_ATTACK_OFFSETS[2] = new Point(-1, 1);
         DIAGONAL_VECTOR_ATTACK_OFFSETS[3] = new Point(-1, -1);
     }
-    
-    public static synchronized ChessRules getInstance()
-    {
-        if (instance == null)
-        {
-            instance = new ChessRules();
-        }
-        return instance;
-    }
 
-    private ChessRules() {}
-    
     public boolean isMoveCorrect(final ChessColor color, final ChessField field,
             final Point fromPoint, final Point toPoint) throws GameMoveException, NoKingOnFieldException
     {

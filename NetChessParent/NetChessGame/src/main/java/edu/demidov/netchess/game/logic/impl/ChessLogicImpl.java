@@ -23,7 +23,7 @@ import java.util.Random;
 
 public class ChessLogicImpl implements ChessLogic
 {
-    public static final String UNKNOWN_FIGURE_TYPE_EXCEPTION = "Неизвестный тип фигуры. Выберите ферзя, ладью, слона или коня.";
+    private static final String UNKNOWN_FIGURE_TYPE_EXCEPTION = "Неизвестный тип фигуры. Выберите ферзя, ладью, слона или коня.";
     private static final String MATE = "Мат";
     private static final String TIME_IS_UP = "Время истекло";
     private static final String OPPONENT_SURRENDER = "Оппонент сдался";
@@ -38,10 +38,10 @@ public class ChessLogicImpl implements ChessLogic
     private static final int RANDOM_ID_MAX = 999_999_999;
     private static final int CHESS_SIZE = 8;
 
-    private final List<ChessLogicObserver> listeners;
-    private final ChessRules chessRules;
+    private static final Logger log = LoggerFactory.getLogger(ChessLogicImpl.class);
     private static ChessLogicImpl instance;
-    private final static Logger log = LoggerFactory.getLogger(ChessLogicImpl.class);
+    private final List<ChessLogicObserver> listeners;
+    private final ChessRules chessRules = new ChessRules();
 
     public static synchronized ChessLogicImpl getInstance()
     {
@@ -55,7 +55,6 @@ public class ChessLogicImpl implements ChessLogic
     private ChessLogicImpl()
     {
         listeners = new ArrayList<>();
-        chessRules = ChessRules.getInstance();
     }
 
     @Override
