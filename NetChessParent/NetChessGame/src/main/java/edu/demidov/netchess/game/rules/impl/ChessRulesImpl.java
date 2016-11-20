@@ -3,7 +3,7 @@ package edu.demidov.netchess.game.rules.impl;
 import edu.demidov.netchess.common.model.exceptions.game.chess.GameMoveException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.InvalidBoardSizeException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.InvalidPointException;
-import edu.demidov.netchess.common.model.exceptions.game.chess.NoKingOnFieldException;
+import edu.demidov.netchess.game.exceptions.NoKingOnFieldException;
 import edu.demidov.netchess.common.model.game.chess.ChessColor;
 import edu.demidov.netchess.common.model.game.chess.ChessField;
 import edu.demidov.netchess.common.model.game.chess.ChessFigure;
@@ -147,7 +147,7 @@ public class ChessRulesImpl implements ChessRules
      * @param field
      * ception 
      * @return  
-     * @throws edu.demidov.netchess.common.model.exceptions.game.chess.NoKingOnFieldException 
+     * @throws NoKingOnFieldException
      */
     @Override
     public boolean isNoMoreMoves(final ChessColor color, final ChessField field) throws NoKingOnFieldException

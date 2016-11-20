@@ -1,7 +1,7 @@
 package edu.demidov.netchess.game.rules;
 
 import edu.demidov.netchess.common.model.exceptions.game.chess.GameMoveException;
-import edu.demidov.netchess.common.model.exceptions.game.chess.NoKingOnFieldException;
+import edu.demidov.netchess.game.exceptions.NoKingOnFieldException;
 import edu.demidov.netchess.common.model.game.chess.ChessColor;
 import edu.demidov.netchess.common.model.game.chess.ChessField;
 import edu.demidov.netchess.utils.Point;

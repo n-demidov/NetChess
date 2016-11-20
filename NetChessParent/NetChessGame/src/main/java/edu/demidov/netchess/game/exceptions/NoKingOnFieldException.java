@@ -1,4 +1,4 @@
-package edu.demidov.netchess.common.model.exceptions.game.chess;
+package edu.demidov.netchess.game.exceptions;
 
 import edu.demidov.netchess.common.model.exceptions.AbstractNetworkChessException;
 
