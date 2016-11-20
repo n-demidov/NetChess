@@ -15,7 +15,7 @@ import edu.demidov.netchess.server.controllers.handlers.InviteToPlayResponseHand
 import edu.demidov.netchess.server.controllers.handlers.LoginUserHandler;
 import edu.demidov.netchess.server.controllers.handlers.NetworkMessageHandler;
 import edu.demidov.netchess.server.model.exceptions.AccessConnectedUserException;
-import edu.demidov.netchess.server.model.invitations.InvitationManager;
+import edu.demidov.netchess.server.model.invitations.Invitations;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.network.ServerNetworkMessage;
 import java.util.ArrayList;
@@ -47,13 +47,13 @@ public class MessageHandlersDispatcher
     private final static Logger log = LoggerFactory.getLogger(MessageHandlersDispatcher.class);
     private final static Marker fatal = MarkerFactory.getMarker("FATAL");
 
-    public MessageHandlersDispatcher(final InvitationManager invitationManager)
+    public MessageHandlersDispatcher(final Invitations invitations)
     {
         final InviteToPlayResponseHandler inviteToPlayResponseHandler = InviteToPlayResponseHandler.getInstance();
-        inviteToPlayResponseHandler.setInviteManager(invitationManager);
+        inviteToPlayResponseHandler.setInviteManager(invitations);
 
         final InviteToPlayHandler inviteToPlayHandler = InviteToPlayHandler.getInstance();
-        inviteToPlayHandler.setInviteManager(invitationManager);
+        inviteToPlayHandler.setInviteManager(invitations);
 
         HANDLERS = new HashMap<>();
         HANDLERS.put(NetworkMessage.Type.LoginUser, LoginUserHandler.getInstance());

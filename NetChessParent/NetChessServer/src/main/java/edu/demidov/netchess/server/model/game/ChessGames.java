@@ -13,7 +13,7 @@ import edu.demidov.netchess.server.model.exceptions.NoSuchUserException;
 import edu.demidov.netchess.server.model.exceptions.NoSuchUserInGameException;
 import edu.demidov.netchess.server.model.exceptions.OneOfUserIsPlayingException;
 import edu.demidov.netchess.server.model.exceptions.UserLoginException;
-import edu.demidov.netchess.server.model.invitations.InvitationObserver;
+import edu.demidov.netchess.server.model.invitations.InvitationsObserver;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.users.AccountManager;
 import edu.demidov.netchess.server.model.users.User;
@@ -32,7 +32,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ChessGames implements InvitationObserver, ChessLogicObserver
+public class ChessGames implements InvitationsObserver, ChessLogicObserver
 {
     private static final Random RANDOM = new Random();
     private final static Logger log = LoggerFactory.getLogger(ChessGames.class);

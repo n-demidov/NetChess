@@ -25,10 +25,10 @@ import org.slf4j.LoggerFactory;
  * Метод checkTTLs должен вызываться из игрового цикла. Метод можно вызывать каждую игровую итерацию:
  * Класс сам следит когда нужно запустить обработку внутри себя.
  */
-public class InvitationManager implements InvitationObservable
+public class Invitations implements InvitationsObservable
 {
-    private final List<InvitationObserver> listeners = new ArrayList<>();
-    private final static Logger log = LoggerFactory.getLogger(InvitationManager.class);
+    private final List<InvitationsObserver> listeners = new ArrayList<>();
+    private final static Logger log = LoggerFactory.getLogger(Invitations.class);
 
     /*
         Map<trgt, Map<Srce, Invitation>>
@@ -41,7 +41,7 @@ public class InvitationManager implements InvitationObservable
     private final int invitationsFreqManageMinutes;
     private final int invitationsTtlMinutes;
 
-    public InvitationManager(final int invitationsFreqManageMinutes, final int invitationsTtlMinutes)
+    public Invitations(final int invitationsFreqManageMinutes, final int invitationsTtlMinutes)
     {
         this.invitationsFreqManageMinutes = invitationsFreqManageMinutes;
         this.invitationsTtlMinutes = invitationsTtlMinutes;
@@ -198,13 +198,13 @@ public class InvitationManager implements InvitationObservable
     }
 
     @Override
-    public void addListener(final InvitationObserver listener)
+    public void addListener(final InvitationsObserver listener)
     {
         listeners.add(listener);
     }
 
     @Override
-    public void removeListener(final InvitationObserver listener)
+    public void removeListener(final InvitationsObserver listener)
     {
         listeners.remove(listener);
     }
@@ -214,7 +214,7 @@ public class InvitationManager implements InvitationObservable
     {
         log.trace("notifySubscribers source={}, target={}", source, target);
 
-        for (final InvitationObserver listener : listeners)
+        for (final InvitationsObserver listener : listeners)
         {
             listener.usersAgreed(source, target);
         }

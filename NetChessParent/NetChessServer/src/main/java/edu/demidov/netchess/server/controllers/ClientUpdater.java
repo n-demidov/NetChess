@@ -5,7 +5,7 @@ import edu.demidov.netchess.common.model.network.NetworkMessage;
 import edu.demidov.netchess.common.model.users.UserProfile;
 import edu.demidov.netchess.server.model.Options;
 import edu.demidov.netchess.server.model.game.ChessGames;
-import edu.demidov.netchess.server.model.invitations.InvitationManager;
+import edu.demidov.netchess.server.model.invitations.Invitations;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.users.User;
 import java.util.Calendar;
@@ -24,7 +24,7 @@ public class ClientUpdater
     private static final Logger log = LoggerFactory.getLogger(ClientUpdater.class);
 
     private final ConnectionManager connectionManager = ConnectionManager.getInstance();
-    private InvitationManager inviteManager;
+    private Invitations inviteManager;
     private ChessGames chessGames;
     private Date nextLaunch = Calendar.getInstance().getTime();
     
@@ -42,7 +42,7 @@ public class ClientUpdater
         this.chessGames = chessGames;
     }
 
-    public void setInviteManager(final InvitationManager inviteManager)
+    public void setInviteManager(final Invitations inviteManager)
     {
         this.inviteManager = inviteManager;
     }

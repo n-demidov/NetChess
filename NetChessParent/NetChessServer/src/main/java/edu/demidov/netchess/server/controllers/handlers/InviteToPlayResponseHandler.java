@@ -3,7 +3,7 @@ package edu.demidov.netchess.server.controllers.handlers;
 import edu.demidov.netchess.common.model.exceptions.IllegalRequestParameter;
 import edu.demidov.netchess.common.model.network.NetworkMessage;
 import edu.demidov.netchess.server.model.exceptions.NoSuchUserException;
-import edu.demidov.netchess.server.model.invitations.InvitationManager;
+import edu.demidov.netchess.server.model.invitations.Invitations;
 import edu.demidov.netchess.server.model.network.ServerNetworkMessage;
 import edu.demidov.netchess.server.model.users.AccountManager;
 import edu.demidov.netchess.server.model.users.User;
@@ -14,7 +14,7 @@ public class InviteToPlayResponseHandler implements NetworkMessageHandler
 {
 
     private final AccountManager accountManager = AccountManager.getInstance();
-    private InvitationManager inviteManager;
+    private Invitations inviteManager;
     
     private static InviteToPlayResponseHandler instance;
     private final static Logger log = LoggerFactory.getLogger(InviteToPlayResponseHandler.class);
@@ -30,7 +30,7 @@ public class InviteToPlayResponseHandler implements NetworkMessageHandler
 
     private InviteToPlayResponseHandler() {}
 
-    public void setInviteManager(final InvitationManager inviteManager)
+    public void setInviteManager(final Invitations inviteManager)
     {
         this.inviteManager = inviteManager;
     }

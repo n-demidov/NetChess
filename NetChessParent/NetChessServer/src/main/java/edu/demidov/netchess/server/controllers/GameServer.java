@@ -5,7 +5,7 @@ import edu.demidov.netchess.game.logic.api.ChessLogic;
 import edu.demidov.netchess.game.logic.impl.ChessLogicImpl;
 import edu.demidov.netchess.server.model.Options;
 import edu.demidov.netchess.server.model.game.ChessGames;
-import edu.demidov.netchess.server.model.invitations.InvitationManager;
+import edu.demidov.netchess.server.model.invitations.Invitations;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.network.ServerNetworkMessage;
 import edu.demidov.netchess.server.model.network.netty.NettyServer;
@@ -22,7 +22,7 @@ public class GameServer
     private final MessageQueue<ServerNetworkMessage> messageQueue;
     private final MessageHandlersDispatcher handlersDispatcher;
     private final ConnectionManager connectionManager;
-    private final InvitationManager inviteManager;
+    private final Invitations inviteManager;
     private final ChessGames chessGames;
     private final ChessLogic gameLogic;
     private final ClientUpdater clientUpdater;
@@ -45,7 +45,7 @@ public class GameServer
         log.info("GameServer");
         
         // Инициилизация объектов
-        inviteManager = new InvitationManager(
+        inviteManager = new Invitations(
                 Options.INVITATIONS_FREQ_MANAGE_MINUTES,
                 Options.INVITATIONS_TTL_MINUTES);
 
