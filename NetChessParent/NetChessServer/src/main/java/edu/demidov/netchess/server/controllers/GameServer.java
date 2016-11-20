@@ -3,6 +3,7 @@ package edu.demidov.netchess.server.controllers;
 import edu.demidov.netchess.common.model.network.MessageQueue;
 import edu.demidov.netchess.game.logic.api.ChessLogic;
 import edu.demidov.netchess.game.logic.impl.ChessLogicImpl;
+import edu.demidov.netchess.server.model.Options;
 import edu.demidov.netchess.server.model.game.ChessGames;
 import edu.demidov.netchess.server.model.invitations.InvitationManager;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
@@ -44,15 +45,20 @@ public class GameServer
         log.info("GameServer");
         
         // Инициилизация объектов
+        inviteManager = new InvitationManager(
+                Options.INVITATIONS_FREQ_MANAGE_MINUTES,
+                Options.INVITATIONS_TTL_MINUTES);
+
         nettyServer = NettyServer.getInstance();
         messageQueue = MessageQueue.getInstance();
-        handlersDispatcher = MessageHandlersDispatcher.getInstance();
+        handlersDispatcher = new MessageHandlersDispatcher(inviteManager);
         connectionManager = ConnectionManager.getInstance();
-        inviteManager = InvitationManager.getInstance();
         chessGames = ChessGames.getInstance();
         gameLogic = ChessLogicImpl.getInstance();
+
         clientUpdater = ClientUpdater.getInstance();
         clientUpdater.setChessGames(chessGames);
+        clientUpdater.setInviteManager(inviteManager);
     }
     
     public static void main(final String[] args)

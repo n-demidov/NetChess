@@ -14,7 +14,7 @@ public class InviteToPlayResponseHandler implements NetworkMessageHandler
 {
 
     private final AccountManager accountManager = AccountManager.getInstance();
-    private final InvitationManager inviteManager = InvitationManager.getInstance();
+    private InvitationManager inviteManager;
     
     private static InviteToPlayResponseHandler instance;
     private final static Logger log = LoggerFactory.getLogger(InviteToPlayResponseHandler.class);
@@ -29,6 +29,16 @@ public class InviteToPlayResponseHandler implements NetworkMessageHandler
     }
 
     private InviteToPlayResponseHandler() {}
+
+    public void setInviteManager(final InvitationManager inviteManager)
+    {
+        this.inviteManager = inviteManager;
+    }
+
+    public static void setInstance(final InviteToPlayResponseHandler instance)
+    {
+        InviteToPlayResponseHandler.instance = instance;
+    }
 
     /**
      * Принимает запрос о том, что пользователь принял\отклонил входящее приглашение

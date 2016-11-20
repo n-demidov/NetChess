@@ -1,6 +1,5 @@
 package edu.demidov.netchess.server.model.invitations;
 
-import edu.demidov.netchess.server.model.Options;
 import edu.demidov.netchess.server.model.users.User;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -13,6 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,30 +28,52 @@ import org.slf4j.LoggerFactory;
  */
 public class InvitationManager implements InvitationObservable
 {
-    
-    private static InvitationManager instance;
-    private final List<InvitationObserver> listeners;
+    private final List<InvitationObserver> listeners = new ArrayList<>();
     private final static Logger log = LoggerFactory.getLogger(InvitationManager.class);
-    
+
     /*
-    Map<trgt, Map<Srce, Invitation>>
-    
-    Приглашённый польз-ль содержит список пригласивших его игроков.
-    Т.к. входящие приглашения будут запрашиваться чаще, чем исходящие.
-    */
-    private final Map<User, Map<User, Invitation>> map;
+        Map<trgt, Map<Srce, Invitation>>
+
+        Приглашённый польз-ль содержит список пригласивших его игроков.
+        Т.к. входящие приглашения будут запрашиваться чаще, чем исходящие.
+        */
+    private final Map<User, Map<User, Invitation>> map = new HashMap<>();
     private Date nextLaunch = Calendar.getInstance().getTime();
-    
-    public static synchronized InvitationManager getInstance()
+    private final int invitationsFreqManageMinutes;
+    private final int invitationsTtlMinutes;
+
+    public InvitationManager(final int invitationsFreqManageMinutes, final int invitationsTtlMinutes)
     {
-        if (instance == null) instance = new InvitationManager();
-        return instance;
+        this.invitationsFreqManageMinutes = invitationsFreqManageMinutes;
+        this.invitationsTtlMinutes = invitationsTtlMinutes;
     }
 
-    private InvitationManager()
+    /**
+     * Возвращает true, если targetUser был приглашён sourceUser'ом
+     */
+    public boolean isInvited(final User sourceUser, final User targetUser)
     {
-        map = new HashMap<>();
-        listeners = new ArrayList<>();
+        if (map.containsKey(targetUser))
+        {
+            return map.get(targetUser).containsKey(sourceUser);
+        }
+
+        return false;
+    }
+
+    /**
+     * Возвращает список игроков, пригласивших targetUser сыграть
+     */
+    public Set<User> getIncomingInviters(final User targetUser)
+    {
+        log.trace("getIncomingInviters targetUser={}", targetUser);
+
+        if (map.containsKey(targetUser))
+        {
+            return map.get(targetUser).keySet();
+        }
+
+        return new HashSet<>();
     }
 
     /**
@@ -75,6 +97,7 @@ public class InvitationManager implements InvitationObservable
         if (!targetInvites.containsKey(sourceUser))
         {
             log.trace("invite: adding invitation sourceUser={}, targetUser={}", sourceUser, targetUser);
+
             targetInvites.put(sourceUser, new Invitation(sourceUser, Calendar.getInstance().getTime()));
         }
         
@@ -93,6 +116,7 @@ public class InvitationManager implements InvitationObservable
     public void cancelInvite(final User sourceUser, final User targetUser)
     {
         log.trace("cancelInvite sourceUser={}, targetUser={}", sourceUser, targetUser);
+
         deleteIncomingInvite(sourceUser, targetUser);
     }
 
@@ -104,8 +128,15 @@ public class InvitationManager implements InvitationObservable
     public void acceptIncomingInvite(final User sourceUser, final User targetUser)
     {
         log.trace("acceptIncomingInvite sourceUser={}, targetUser={}", sourceUser, targetUser);
+
         // Если предложение еще в силе - начинаем партию
         final Map<User, Invitation> targetInvites = map.get(targetUser);
+
+        if (targetInvites == null)
+        {
+            return;
+        }
+
         if (targetInvites.containsKey(sourceUser))
         {
             usersAgreed(sourceUser, targetUser);
@@ -120,36 +151,8 @@ public class InvitationManager implements InvitationObservable
     public void rejectIncomingInvite(final User sourceUser, final User targetUser)
     {
         log.trace("rejectIncomingInvite sourceUser={}, targetUser={}", sourceUser, targetUser);
+
         deleteIncomingInvite(sourceUser, targetUser);
-    }
-
-    /**
-     * Возвращает список игроков, пригласивших targetUser сыграть
-     * @param targetUser 
-     * @return  
-     */
-    public Set<User> getIncomingInviters(final User targetUser)
-    {
-        log.trace("getIncomingInviters targetUser={}", targetUser);
-        if (map.containsKey(targetUser))
-        {
-            return map.get(targetUser).keySet();
-        }
-
-        return new HashSet<>();
-    }
-
-    /**
-     * Возвращает true, если targetUser был приглашён sourceUser'ом
-     * @param sourceUser
-     * @param targetUser
-     * @return 
-     */
-    public boolean isInvited(final User sourceUser, final User targetUser)
-    {
-        if (map.containsKey(targetUser)) return map.get(targetUser).containsKey(sourceUser);
-
-        return false;
     }
     
     /**
@@ -162,16 +165,12 @@ public class InvitationManager implements InvitationObservable
         if (nextLaunch.before(Calendar.getInstance().getTime()))
         {
             log.trace("checkTTLs starts process by time");
+
             // Устанавливаем время следующей проверки TTL
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.MINUTE, Options.INVITATIONS_FREQ_MANAGE_MINUTES);
+            final Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.MINUTE, invitationsFreqManageMinutes);
             nextLaunch = calendar.getTime();
-            
-            // Находим разницу между текущим временем и INVITES_TTL_MIN
-            calendar = Calendar.getInstance();
-            calendar.add(Calendar.MINUTE, -Options.INVITATIONS_TTL_MINUTES);
-            final Date curDeltaDate = calendar.getTime();
-            
+
             // Для каждого приглашённого пользователя
             final Iterator<Entry<User, Map<User, Invitation>>> it1 = map.entrySet().iterator();
             while (it1.hasNext())
@@ -183,10 +182,12 @@ public class InvitationManager implements InvitationObservable
                 while (it2.hasNext())
                 {
                     final Invitation invitation = it2.next().getValue();
+
                     // Если TTL приглашения истекло - удаляем его
-                    if (invitation.getInvitedDate().before(curDeltaDate))
+                    if (isDateExpired(invitation.getInvitedDate(), invitationsTtlMinutes))
                     {
                         log.trace("checkTTLs invitation's time expired, invitation={}", invitation);
+
                         it2.remove();
                     }
                 }
@@ -196,8 +197,7 @@ public class InvitationManager implements InvitationObservable
             }
         }
     }
-    
-    
+
     @Override
     public void addListener(final InvitationObserver listener)
     {
@@ -214,8 +214,11 @@ public class InvitationManager implements InvitationObservable
     public void notifySubscribers(final User source, final User target)
     {
         log.trace("notifySubscribers source={}, target={}", source, target);
+
         for (final InvitationObserver listener : listeners)
+        {
             listener.usersAgreed(source, target);
+        }
     }
     
     /**
@@ -261,16 +264,26 @@ public class InvitationManager implements InvitationObservable
     private void usersAgreed(final User source, final User target)
     {
         log.trace("usersAgreed source={}, target={}", source, target);
+
         // Удаляем заявки у обоих
         deleteIncomingInvite(source, target);
         deleteIncomingInvite(target, source);
         
         notifySubscribers(source, target);
     }
+
+    private boolean isDateExpired(final Date startDate, final int minutes)
+    {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+        calendar.add(Calendar.MINUTE, minutes);
+        final Date expiredDate = calendar.getTime();
+
+        return expiredDate.before(Calendar.getInstance().getTime());
+    }
     
     private static class Invitation
     {
-        
         private final User sourceUser;
         private final Date invitedDate;
 
@@ -334,7 +347,5 @@ public class InvitationManager implements InvitationObservable
             }
             return true;
         }
-        
     }
-    
 }

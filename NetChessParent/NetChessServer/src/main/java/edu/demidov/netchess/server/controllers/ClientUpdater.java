@@ -24,7 +24,7 @@ public class ClientUpdater
     private static final Logger log = LoggerFactory.getLogger(ClientUpdater.class);
 
     private final ConnectionManager connectionManager = ConnectionManager.getInstance();
-    private final InvitationManager inviteManager = InvitationManager.getInstance();
+    private InvitationManager inviteManager;
     private ChessGames chessGames;
     private Date nextLaunch = Calendar.getInstance().getTime();
     
@@ -37,10 +37,16 @@ public class ClientUpdater
         return instance;
     }
 
-    public void setChessGames(final ChessGames chessGames) {
+    public void setChessGames(final ChessGames chessGames)
+    {
         this.chessGames = chessGames;
     }
-    
+
+    public void setInviteManager(final InvitationManager inviteManager)
+    {
+        this.inviteManager = inviteManager;
+    }
+
     private ClientUpdater() {}
 
     /**

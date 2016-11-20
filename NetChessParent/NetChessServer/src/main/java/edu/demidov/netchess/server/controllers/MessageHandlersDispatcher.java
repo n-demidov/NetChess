@@ -15,6 +15,7 @@ import edu.demidov.netchess.server.controllers.handlers.InviteToPlayResponseHand
 import edu.demidov.netchess.server.controllers.handlers.LoginUserHandler;
 import edu.demidov.netchess.server.controllers.handlers.NetworkMessageHandler;
 import edu.demidov.netchess.server.model.exceptions.AccessConnectedUserException;
+import edu.demidov.netchess.server.model.invitations.InvitationManager;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.network.ServerNetworkMessage;
 import java.util.ArrayList;
@@ -37,50 +38,45 @@ public class MessageHandlersDispatcher
     private final ConnectionManager connectionManager = ConnectionManager.getInstance();
     
     // Таблица соответствий типов сообщений (NetworkMessage) и обработчиков для них
-    private static final Map<NetworkMessage.Type, NetworkMessageHandler> HANDLERS;
+    private final Map<NetworkMessage.Type, NetworkMessageHandler> HANDLERS;
     
     // Типы сообщений, для которых не надо проверять атворизацию. Для них sender будет null в ServerNetworkMessage.
-    private static final List<NetworkMessage.Type> EXCLUDED_CHECK_AUTH;
+    private final List<NetworkMessage.Type> EXCLUDED_CHECK_AUTH;
 
     private static MessageHandlersDispatcher instance;
     private final static Logger log = LoggerFactory.getLogger(MessageHandlersDispatcher.class);
     private final static Marker fatal = MarkerFactory.getMarker("FATAL");
-    
-    static
+
+    public MessageHandlersDispatcher(final InvitationManager invitationManager)
     {
+        final InviteToPlayResponseHandler inviteToPlayResponseHandler = InviteToPlayResponseHandler.getInstance();
+        inviteToPlayResponseHandler.setInviteManager(invitationManager);
+
+        final InviteToPlayHandler inviteToPlayHandler = InviteToPlayHandler.getInstance();
+        inviteToPlayHandler.setInviteManager(invitationManager);
+
         HANDLERS = new HashMap<>();
         HANDLERS.put(NetworkMessage.Type.LoginUser, LoginUserHandler.getInstance());
         HANDLERS.put(NetworkMessage.Type.CreateUser, CreateUserHandler.getInstance());
         HANDLERS.put(NetworkMessage.Type.ChatSend, ChatSendHandler.getInstance());
         HANDLERS.put(NetworkMessage.Type.GetOnlineUsers, GetOnlineUsersHandler.getInstance());
-        
-        HANDLERS.put(NetworkMessage.Type.InviteToPlay, InviteToPlayHandler.getInstance());
+
+        HANDLERS.put(NetworkMessage.Type.InviteToPlay, inviteToPlayHandler);
         HANDLERS.put(NetworkMessage.Type.GetIncomingInviters, GetIncomingInvitersHandler.getInstance());
-        HANDLERS.put(NetworkMessage.Type.InviteToPlayResponse, InviteToPlayResponseHandler.getInstance());
-        
+        HANDLERS.put(NetworkMessage.Type.InviteToPlayResponse, inviteToPlayResponseHandler);
+
         HANDLERS.put(NetworkMessage.Type.GetCurrentGame, GetCurrentGameHandler.getInstance());
         HANDLERS.put(NetworkMessage.Type.DoAction, GameActionHandler.getInstance());
-        
+
         HANDLERS.put(NetworkMessage.Type.ConnectionClosed, ConnectionClosedHandler.getInstance());
         HANDLERS.put(NetworkMessage.Type.ConnectionOpened, ConnectionOpenedHandler.getInstance());
-        
+
         EXCLUDED_CHECK_AUTH = new ArrayList<>();
         EXCLUDED_CHECK_AUTH.add(NetworkMessage.Type.CreateUser);
         EXCLUDED_CHECK_AUTH.add(NetworkMessage.Type.LoginUser);
         EXCLUDED_CHECK_AUTH.add(NetworkMessage.Type.ConnectionOpened);
         EXCLUDED_CHECK_AUTH.add(NetworkMessage.Type.ConnectionClosed);
     }
-    
-    public static synchronized MessageHandlersDispatcher getInstance()
-    {
-        if (instance == null)
-        {
-            instance = new MessageHandlersDispatcher();
-        }
-        return instance;
-    }
-
-    private MessageHandlersDispatcher() {}
     
     /**
      * Обрабатывает сообщение (ServerNetworkMessage).
