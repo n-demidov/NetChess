@@ -1,4 +1,4 @@
-package edu.demidov.netchess.game.logic.api;
+package edu.demidov.netchess.game.api;
 
 import edu.demidov.netchess.common.model.exceptions.game.chess.GameMoveException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.NoNextPlayerFoundException;

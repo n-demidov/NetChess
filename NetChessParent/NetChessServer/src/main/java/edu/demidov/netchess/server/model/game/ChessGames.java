@@ -4,9 +4,9 @@ import edu.demidov.netchess.common.model.exceptions.game.chess.NoNextPlayerFound
 import edu.demidov.netchess.common.model.game.chess.ChessColor;
 import edu.demidov.netchess.common.model.game.chess.ChessGame;
 import edu.demidov.netchess.common.model.game.chess.ChessPlayer;
-import edu.demidov.netchess.game.logic.api.ChessLogic;
-import edu.demidov.netchess.game.logic.api.ChessLogicObserver;
-import edu.demidov.netchess.game.logic.impl.ChessLogicImpl;
+import edu.demidov.netchess.game.api.ChessLogic;
+import edu.demidov.netchess.game.api.ChessLogicObserver;
+import edu.demidov.netchess.game.impl.ChessLogicImpl;
 import edu.demidov.netchess.server.controllers.ClientUpdater;
 import edu.demidov.netchess.server.model.Options;
 import edu.demidov.netchess.server.model.exceptions.NoSuchUserException;

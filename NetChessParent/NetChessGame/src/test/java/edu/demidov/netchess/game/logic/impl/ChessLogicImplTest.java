@@ -4,7 +4,8 @@ import edu.demidov.netchess.common.model.exceptions.game.chess.GameMoveException
 import edu.demidov.netchess.common.model.game.chess.ChessFigure;
 import edu.demidov.netchess.common.model.game.chess.ChessGame;
 import edu.demidov.netchess.common.model.game.chess.ChessPlayer;
-import edu.demidov.netchess.game.logic.api.ChessLogicObserver;
+import edu.demidov.netchess.game.api.ChessLogicObserver;
+import edu.demidov.netchess.game.impl.ChessLogicImpl;
 import org.junit.Before;
 import org.junit.Test;
 

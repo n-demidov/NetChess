@@ -1,4 +1,4 @@
-package edu.demidov.netchess.game.logic.impl;
+package edu.demidov.netchess.game.impl;
 
 import edu.demidov.netchess.common.model.exceptions.game.chess.GameMoveException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.InvalidBoardSizeException;
@@ -11,8 +11,8 @@ import edu.demidov.netchess.common.model.game.chess.ChessGame;
 import edu.demidov.netchess.common.model.game.chess.ChessPlayer;
 import edu.demidov.netchess.game.rules.ChessRules;
 import edu.demidov.netchess.game.rules.impl.ChessRulesImpl;
-import edu.demidov.netchess.game.logic.api.ChessLogic;
-import edu.demidov.netchess.game.logic.api.ChessLogicObserver;
+import edu.demidov.netchess.game.api.ChessLogic;
+import edu.demidov.netchess.game.api.ChessLogicObserver;
 import edu.demidov.netchess.utils.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

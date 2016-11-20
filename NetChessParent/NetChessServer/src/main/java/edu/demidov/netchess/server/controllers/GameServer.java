@@ -1,8 +1,8 @@
 package edu.demidov.netchess.server.controllers;
 
 import edu.demidov.netchess.common.model.network.MessageQueue;
-import edu.demidov.netchess.game.logic.api.ChessLogic;
-import edu.demidov.netchess.game.logic.impl.ChessLogicImpl;
+import edu.demidov.netchess.game.api.ChessLogic;
+import edu.demidov.netchess.game.impl.ChessLogicImpl;
 import edu.demidov.netchess.server.model.Options;
 import edu.demidov.netchess.server.model.game.ChessGames;
 import edu.demidov.netchess.server.model.invitations.Invitations;
