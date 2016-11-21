@@ -274,6 +274,7 @@ public class ChessGame implements Serializable
     public void end(final ChessPlayer winner, final String resultDescription) throws NoNextPlayerFoundException
     {
         log.debug("end winner={}, resultDescription={}", winner, resultDescription);
+
         setFinished(true);
         setResult(winner);
         setResultReasonDescription(resultDescription);

@@ -42,7 +42,7 @@ public class ChessLogicImpl implements ChessLogic
     private static final Logger log = LoggerFactory.getLogger(ChessLogicImpl.class);
     private static ChessLogicImpl instance;
     private final List<ChessLogicObserver> listeners;
-    private final ChessRules chessRules = new ChessRulesImpl();
+    private ChessRules chessRules;
 
     public static synchronized ChessLogicImpl getInstance()
     {
@@ -56,6 +56,12 @@ public class ChessLogicImpl implements ChessLogic
     private ChessLogicImpl()
     {
         listeners = new ArrayList<>();
+    }
+
+    @Override
+    public void setChessRules(final ChessRules chessRules)
+    {
+        this.chessRules = chessRules;
     }
 
     @Override
@@ -118,6 +124,7 @@ public class ChessLogicImpl implements ChessLogic
                                  final Point fromPoint, final Point toPoint) throws GameMoveException
     {
         log.debug("playerMoveFigure player={}, game={}, fromPoint={}, toPoint={}", player, game, fromPoint, toPoint);
+
         try
         {
             final long currentMoveTime = countCurrentMoveMilliseconds(game);  // Подсчитываем время текущего хода
@@ -147,10 +154,15 @@ public class ChessLogicImpl implements ChessLogic
     }
 
     @Override
-    public void playerChooseFigureInsteadPawn(final ChessPlayer player,
-                         final ChessGame game, final ChessFigure.Type chosenFigureType) throws GameMoveException
+    public void playerTransformPawn(final ChessPlayer player, final ChessGame game,
+                                    final ChessFigure.Type chosenFigureType) throws GameMoveException
     {
-        log.trace("playerChooseFigureInsteadPawn player={}, game={}, chosenFigureType={}", player, game, chosenFigureType);
+        log.trace("playerTransformPawn player={}, game={}, chosenFigureType={}", player, game, chosenFigureType);
+
+        if (game.isFinished())
+        {
+            return;
+        }
 
         try
         {
@@ -186,6 +198,11 @@ public class ChessLogicImpl implements ChessLogic
     {
         log.trace("playerSurrender, game={}, player={}", game, player);
 
+        if (game.isFinished())
+        {
+            return;
+        }
+
         try
         {
             endGame(game, game.getNextPlayer(player), OPPONENT_SURRENDER);
@@ -200,6 +217,11 @@ public class ChessLogicImpl implements ChessLogic
     public void playerOfferedDraw(final ChessPlayer offeredDrawPlayer, final ChessGame game)
     {
         log.trace("playerOfferedDraw, offeredDrawPlayer={}, game={}", offeredDrawPlayer, game);
+
+        if (game.isFinished())
+        {
+            return;
+        }
 
         if (offeredDrawPlayer.isOfferedDraw())
         {
@@ -239,18 +261,21 @@ public class ChessLogicImpl implements ChessLogic
     {
         log.trace("checkGameForEndByTime game={}", game);
 
-        if (game.isFinished()) return;
+        if (game.isFinished())
+        {
+            return;
+        }
 
         final ChessPlayer currentPlayer = game.getCurrentPlayer();
-        if (currentPlayer == null) return;
+        if (currentPlayer == null)
+        {
+            return;
+        }
 
-        // Время текущего хода
         final long currentMoveTime = countCurrentMoveMilliseconds(game);
+        final long currentPlayerNewTimeLeft = currentPlayer.getTimeLeft() - currentMoveTime;
 
-        // Оставшееся время текущего игрока
-        final long playerLeftTime = currentPlayer.getTimeLeft() - currentMoveTime;
-
-        if (playerLeftTime < 0)
+        if (currentPlayerNewTimeLeft < 0)
         {
             endGame(game, game.getNextPlayer(currentPlayer), TIME_IS_UP);
         }

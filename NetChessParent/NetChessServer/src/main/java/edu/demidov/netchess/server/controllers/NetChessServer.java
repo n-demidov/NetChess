@@ -3,6 +3,7 @@ package edu.demidov.netchess.server.controllers;
 import edu.demidov.netchess.common.model.network.MessageQueue;
 import edu.demidov.netchess.game.api.ChessLogic;
 import edu.demidov.netchess.game.impl.ChessLogicImpl;
+import edu.demidov.netchess.game.rules.impl.ChessRulesImpl;
 import edu.demidov.netchess.server.model.Options;
 import edu.demidov.netchess.server.model.game.ChessGames;
 import edu.demidov.netchess.server.model.invitations.Invitations;
@@ -18,14 +19,13 @@ public class NetChessServer
 {
     private static final long SLEEP = 1000L;
     
-    private final NettyServer nettyServer;
-    private final MessageQueue<ServerNetworkMessage> messageQueue;
-    private final MessageHandlersDispatcher handlersDispatcher;
-    private final ConnectionManager connectionManager;
-    private final Invitations inviteManager;
-    private final ChessGames chessGames;
-    private final ChessLogic gameLogic;
-    private final ClientUpdater clientUpdater;
+    private NettyServer nettyServer;
+    private MessageQueue<ServerNetworkMessage> messageQueue;
+    private MessageHandlersDispatcher handlersDispatcher;
+    private ConnectionManager connectionManager;
+    private Invitations inviteManager;
+    private ChessGames chessGames;
+    private ClientUpdater clientUpdater;
     
     private final static Logger log = LoggerFactory.getLogger(NetChessServer.class);
     private final static Marker fatal = MarkerFactory.getMarker("FATAL");
@@ -42,35 +42,7 @@ public class NetChessServer
     
     private NetChessServer()
     {
-        log.info("NetChessServer");
-        
-        // Инициилизация объектов
-        inviteManager = new Invitations(
-                Options.INVITATIONS_FREQ_MANAGE_MINUTES,
-                Options.INVITATIONS_TTL_MINUTES);
-
-        nettyServer = NettyServer.getInstance();
-        messageQueue = MessageQueue.getInstance();
-        handlersDispatcher = new MessageHandlersDispatcher(inviteManager);
-        connectionManager = ConnectionManager.getInstance();
-        chessGames = ChessGames.getInstance();
-        gameLogic = ChessLogicImpl.getInstance();
-
-        clientUpdater = ClientUpdater.getInstance();
-        clientUpdater.setChessGames(chessGames);
-        clientUpdater.setInviteManager(inviteManager);
-    }
-    
-    public static void main(final String[] args)
-    {
-        try
-        {
-            NetChessServer.getInstance().start();
-        } catch (final InterruptedException ex)
-        {
-            log.error(fatal, "main args={}", args, ex);
-            System.out.println(ex.getLocalizedMessage());
-        }
+        configureObjects();
     }
     
     /**
@@ -81,9 +53,6 @@ public class NetChessServer
     public void start() throws InterruptedException
     {
         log.info("start");
-
-        inviteManager.addListener(chessGames);
-        gameLogic.addListener(chessGames);
 
         nettyServer.run();
 
@@ -112,5 +81,39 @@ public class NetChessServer
 
         // Закрываем NettyServer
         nettyServer.stop();
+    }
+
+    public static void main(final String[] args)
+    {
+        try
+        {
+            NetChessServer.getInstance().start();
+        } catch (final InterruptedException ex)
+        {
+            log.error(fatal, "main args={}", args, ex);
+            System.out.println(ex.getLocalizedMessage());
+        }
+    }
+
+    private void configureObjects() {
+        log.info("configureObjects");
+
+        chessGames = ChessGames.getInstance();
+        final ChessLogic gameLogic = ChessLogicImpl.getInstance();
+        gameLogic.setChessRules(new ChessRulesImpl());
+        gameLogic.addListener(chessGames);
+
+        inviteManager = new Invitations(
+                Options.INVITATIONS_FREQ_MANAGE_MINUTES,
+                Options.INVITATIONS_TTL_MINUTES);
+        inviteManager.addListener(chessGames);
+
+        nettyServer = NettyServer.getInstance();
+        messageQueue = MessageQueue.getInstance();
+        handlersDispatcher = new MessageHandlersDispatcher(inviteManager);
+        connectionManager = ConnectionManager.getInstance();
+        clientUpdater = ClientUpdater.getInstance();
+        clientUpdater.setChessGames(chessGames);
+        clientUpdater.setInviteManager(inviteManager);
     }
 }

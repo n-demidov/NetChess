@@ -137,7 +137,7 @@ public class GameActionHandler implements NetworkMessageHandler
         log.trace("processChooseFigureInsteadPawn player={}, game={}, chessAction={}", player, game, chessAction);
 
         final ChessFigure.Type chosenFigureType = chessAction.getChooseFigureType();
-        gameLogic.playerChooseFigureInsteadPawn(player, game, chosenFigureType);
+        gameLogic.playerTransformPawn(player, game, chosenFigureType);
     }
 
     private void processSurrender(final ChessPlayer player, final ChessGame game)

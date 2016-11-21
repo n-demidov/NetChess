@@ -1,11 +1,11 @@
-package edu.demidov.netchess.game.logic.impl;
+package edu.demidov.netchess.game.impl;
 
 import edu.demidov.netchess.common.model.exceptions.game.chess.GameMoveException;
+import edu.demidov.netchess.common.model.exceptions.game.chess.NoNextPlayerFoundException;
 import edu.demidov.netchess.common.model.game.chess.ChessFigure;
 import edu.demidov.netchess.common.model.game.chess.ChessGame;
 import edu.demidov.netchess.common.model.game.chess.ChessPlayer;
 import edu.demidov.netchess.game.api.ChessLogicObserver;
-import edu.demidov.netchess.game.impl.ChessLogicImpl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -49,8 +49,14 @@ public class ChessLogicImplTest
         assertEquals(game.getNextPlayer(nextPlayer), currentPlayer);
     }
 
+
+
+
+
+
+
     @Test
-    public void testPlayerChooseFigureInsteadPawn_WhenGoodFigures() throws Exception
+    public void testPlayerTransformPawn_WhenGoodFigures() throws Exception
     {
         final List<ChessFigure.Type> figures = new ArrayList<>(Arrays.asList(
                 ChessFigure.Type.Queen, ChessFigure.Type.Castle, ChessFigure.Type.Bishop, ChessFigure.Type.Knight));
@@ -60,7 +66,7 @@ public class ChessLogicImplTest
             before();
             when(game.isCurrentPlayerChoosingFigure()).thenReturn(true);
 
-            chessLogic.playerChooseFigureInsteadPawn(currentPlayer, game, figure);
+            chessLogic.playerTransformPawn(currentPlayer, game, figure);
 
             verify(game, times(1)).transformPawn(currentPlayer, figure);
             verify(chessLogicObserver, never()).gameEnded(eq(game), eq(nextPlayer));
@@ -69,10 +75,10 @@ public class ChessLogicImplTest
     }
 
     @Test
-    public void testPlayerChooseFigureInsteadPawn_WhenWrongFigures() throws Exception
+    public void testPlayerTransformPawn_WhenWrongFigures() throws Exception
     {
         final List<ChessFigure.Type> figures = new ArrayList<>(Arrays.asList(
-                null, ChessFigure.Type.Pawn, ChessFigure.Type.King));
+                ChessFigure.Type.Pawn, ChessFigure.Type.King, null));
 
         for (final ChessFigure.Type figure : figures)
         {
@@ -80,7 +86,7 @@ public class ChessLogicImplTest
             when(game.isCurrentPlayerChoosingFigure()).thenReturn(true);
 
             try {
-                chessLogic.playerChooseFigureInsteadPawn(game.getCurrentPlayer(), game, figure);
+                chessLogic.playerTransformPawn(game.getCurrentPlayer(), game, figure);
                 fail();
             } catch (final GameMoveException e) {}
 
@@ -91,21 +97,16 @@ public class ChessLogicImplTest
     }
 
     @Test
-    public void testPlayerSurrender_WhenCurrentPlayerSurrender() throws Exception
+    public void testPlayerTransformPawn_WhenGameEnded() throws Exception
     {
-        chessLogic.playerSurrender(currentPlayer, game);
+        final ChessFigure.Type figure = ChessFigure.Type.Queen;
 
-        verify(chessLogicObserver, times(1)).gameEnded(eq(game), eq(nextPlayer));
-        verify(chessLogicObserver, never()).gameChanged(any(ChessGame.class));
-    }
+        when(game.isFinished()).thenReturn(true);
+        when(game.isCurrentPlayerChoosingFigure()).thenReturn(true);
 
-    @Test
-    public void testPlayerSurrender_WhenNextPlayerSurrender() throws Exception
-    {
-        chessLogic.playerSurrender(nextPlayer, game);
+        chessLogic.playerTransformPawn(currentPlayer, game, figure);
 
-        verify(chessLogicObserver, times(1)).gameEnded(eq(game), eq(currentPlayer));
-        verify(chessLogicObserver, never()).gameChanged(any(ChessGame.class));
+        verifyThatNoChanges();
     }
 
     @Test
@@ -113,9 +114,7 @@ public class ChessLogicImplTest
     {
         chessLogic.checkGameForEndByTime(game);
 
-        verify(game, never()).end(any(ChessPlayer.class), any(String.class));
-        verify(chessLogicObserver, never()).gameEnded(any(ChessGame.class), any(ChessPlayer.class));
-        verify(chessLogicObserver, never()).gameChanged(any(ChessGame.class));
+        verifyThatNoChanges();
     }
 
     @Test
@@ -127,6 +126,54 @@ public class ChessLogicImplTest
 
         verify(game, times(1)).end(any(ChessPlayer.class), any(String.class));
         verify(chessLogicObserver, times(1)).gameEnded(eq(game), eq(nextPlayer));
+        verify(chessLogicObserver, never()).gameChanged(any(ChessGame.class));
+    }
+
+    @Test
+    public void testCheckGameForEndByTime_WhenGameEnded() throws Exception
+    {
+        doGameExpired(game);
+        when(game.isFinished()).thenReturn(true);
+
+        chessLogic.checkGameForEndByTime(game);
+
+        verifyThatNoChanges();
+    }
+
+    @Test
+    public void testPlayerSurrender_WhenCurrentPlayerSurrender() throws Exception
+    {
+        final ChessPlayer winner = nextPlayer;
+
+        chessLogic.playerSurrender(currentPlayer, game);
+
+        verifyWhenPlayerSurrender(winner);
+    }
+
+    @Test
+    public void testPlayerSurrender_WhenNextPlayerSurrender() throws Exception
+    {
+        final ChessPlayer winner = currentPlayer;
+
+        chessLogic.playerSurrender(nextPlayer, game);
+
+        verifyWhenPlayerSurrender(winner);
+    }
+
+    @Test
+    public void testPlayerSurrender_WhenGameEnded() throws Exception
+    {
+        when(game.isFinished()).thenReturn(true);
+
+        chessLogic.playerSurrender(currentPlayer, game);
+
+        verifyThatNoChanges();
+    }
+
+    private void verifyWhenPlayerSurrender(final ChessPlayer winner) throws NoNextPlayerFoundException
+    {
+        verify(game, times(1)).end(eq(winner), any(String.class));
+        verify(chessLogicObserver, times(1)).gameEnded(eq(game), eq(winner));
         verify(chessLogicObserver, never()).gameChanged(any(ChessGame.class));
     }
 
@@ -154,5 +201,11 @@ public class ChessLogicImplTest
 
         when(currentPlayer.getTimeLeft()).thenReturn(moveTimeLeft);
         when(game.getCurrentMoveStarted()).thenReturn(moveStarted);
+    }
+
+    private void verifyThatNoChanges() throws NoNextPlayerFoundException {
+        verify(game, never()).end(any(ChessPlayer.class), any(String.class));
+        verify(chessLogicObserver, never()).gameEnded(any(ChessGame.class), any(ChessPlayer.class));
+        verify(chessLogicObserver, never()).gameChanged(any(ChessGame.class));
     }
 }
