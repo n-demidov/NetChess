@@ -8,46 +8,38 @@ import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NetChessClientHandler extends ChannelInboundHandlerAdapter
-{
-    
-    private final MessageQueue<NetworkMessage> messageQueue = MessageQueue.getInstance();
+public class NetChessClientHandler extends ChannelInboundHandlerAdapter {
+
     private final static Logger log = LoggerFactory.getLogger(NetChessClientHandler.class);
+    private final MessageQueue<NetworkMessage> messageQueue = MessageQueue.getInstance();
 
     @Override
-    public void channelRead(final ChannelHandlerContext ctx, final Object msg)
-    {
+    public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
         log.trace("channelRead channel={}, msg={}", ctx.channel(), msg);
-        try
-        {
+        try {
             // Помещаем сообщение в очередь сообщений
             final NetworkMessage netMsg = (NetworkMessage) msg;
             messageQueue.putMessage(netMsg);
-        } catch (final InterruptedException ex)
-        {
+        } catch (final InterruptedException ex) {
             log.error("channelRead channel={}, msg={}", ctx.channel(), msg, ex);
-        } finally
-        {
+        } finally {
             ReferenceCountUtil.release(msg);
         }
     }
 
     @Override
-    public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause)
-    {
+    public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) {
         log.warn("exceptionCaught channel={}, cause={}", ctx.channel(), cause);
-        try
-        {
+        try {
             ctx.close();        // Close the connection when an exception is raised.
 
             // Помещаем сообщение в очередь обработки
             final NetworkMessage netMsg = new NetworkMessage(NetworkMessage.Type.ConnectionClosed);
             netMsg.put(NetworkMessage.TEXT, cause.getLocalizedMessage());
             messageQueue.putMessage(netMsg);
-        } catch (final InterruptedException ex)
-        {
+        } catch (final InterruptedException ex) {
             log.error("exceptionCaught channel={}, cause={}", ctx.channel(), cause, ex);
         }
     }
-    
+
 }

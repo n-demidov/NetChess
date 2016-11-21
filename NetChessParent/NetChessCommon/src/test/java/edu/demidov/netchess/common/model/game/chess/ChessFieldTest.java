@@ -3,20 +3,23 @@ package edu.demidov.netchess.common.model.game.chess;
 import edu.demidov.netchess.common.model.exceptions.game.chess.InvalidBoardSizeException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.InvalidPointException;
 import edu.demidov.netchess.utils.Point;
-import java.util.Random;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
-public class ChessFieldTest
-{
+import java.util.Random;
+
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
+public class ChessFieldTest {
 
     private static final int FIELD_SIZE = 8;
 
     @Test
-    public void testGetFieldSize() throws Exception
-    {
+    public void testGetFieldSize() throws Exception {
         final ChessField field = new ChessField(FIELD_SIZE);
 
         assertEquals(String.format("The test case failed of a FIELD_SIZE = %s", FIELD_SIZE),
@@ -24,8 +27,7 @@ public class ChessFieldTest
     }
 
     @Test
-    public void testSetFigure() throws Exception
-    {
+    public void testSetFigure() throws Exception {
         final ChessField field = new ChessField(FIELD_SIZE);
         final Point inputPoint = new Point(0, 0);
         final ChessFigure inputFigure = new ChessFigure(ChessColor.White, ChessFigure.Type.Pawn);
@@ -37,8 +39,7 @@ public class ChessFieldTest
     }
 
     @Test
-    public void testGetFigureWhenFigureIsNotSet() throws Exception
-    {
+    public void testGetFigureWhenFigureIsNotSet() throws Exception {
         final ChessField field = new ChessField(FIELD_SIZE);
         final Point inputPoint = new Point(0, 0);
 
@@ -48,71 +49,57 @@ public class ChessFieldTest
     }
 
     @Test
-    public void testGetFigureWhenXIsLessThenZero() throws Exception
-    {
+    public void testGetFigureWhenXIsLessThenZero() throws Exception {
         final ChessField field = new ChessField(FIELD_SIZE);
         final Point inputPoint = new Point(-1, 0);
 
-        try
-        {
+        try {
             field.getFigure(inputPoint);
             fail();
-        } catch (final InvalidPointException e)
-        {
+        } catch (final InvalidPointException e) {
         }
     }
 
     @Test
-    public void testGetFigureWhenYIsLessThenZero() throws Exception
-    {
+    public void testGetFigureWhenYIsLessThenZero() throws Exception {
         final ChessField field = new ChessField(FIELD_SIZE);
         final Point inputPoint = new Point(0, -1);
 
-        try
-        {
+        try {
             field.getFigure(inputPoint);
             fail();
-        } catch (final InvalidPointException e)
-        {
+        } catch (final InvalidPointException e) {
         }
     }
 
     @Test
-    public void testGetFigureWhenXIsMoreThenSize() throws Exception
-    {
+    public void testGetFigureWhenXIsMoreThenSize() throws Exception {
         final ChessField field = new ChessField(FIELD_SIZE);
         final Point inputPoint = new Point(field.getFieldSize() + 1, 0);
 
-        try
-        {
+        try {
             field.getFigure(inputPoint);
             fail();
-        } catch (final InvalidPointException e)
-        {
+        } catch (final InvalidPointException e) {
         }
     }
 
     @Test
-    public void testGetFigureWhenYIsMoreThenSize() throws Exception
-    {
+    public void testGetFigureWhenYIsMoreThenSize() throws Exception {
         final ChessField field = new ChessField(FIELD_SIZE);
         final Point inputPoint = new Point(0, field.getFieldSize() + 1);
 
-        try
-        {
+        try {
             field.getFigure(inputPoint);
             fail();
-        } catch (final InvalidPointException e)
-        {
+        } catch (final InvalidPointException e) {
         }
     }
 
     @Test(expected = InvalidBoardSizeException.class)
-    public void testCustomFieldError() throws Exception
-    {
+    public void testCustomFieldError() throws Exception {
         final Random randomGenerator = new Random();
-        for (int i = 100; i > 0; i--)
-        {
+        for (int i = 100; i > 0; i--) {
             final int fieldSize = randomGenerator.nextInt(50) - 50;
             final ChessField field = new ChessField(fieldSize);
         }
@@ -120,11 +107,11 @@ public class ChessFieldTest
 
     /**
      * Проверяет копирование объекта: для поля field - глубокое копирование, для фигур на доске - неважно (можно любое)
+     *
      * @throws java.lang.Exception
      */
     @Test
-    public void testChessField_1arg_OtherChessField() throws Exception
-    {
+    public void testChessField_1arg_OtherChessField() throws Exception {
         final Point inputPoint = new Point(0, 3);
 
         final ChessField field = new ChessField(FIELD_SIZE);

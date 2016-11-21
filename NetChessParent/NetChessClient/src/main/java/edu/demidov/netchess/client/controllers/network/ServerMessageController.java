@@ -6,90 +6,81 @@ import edu.demidov.netchess.common.model.game.chess.ChessGame;
 import edu.demidov.netchess.common.model.network.MessageQueue;
 import edu.demidov.netchess.common.model.network.NetworkMessage;
 import edu.demidov.netchess.common.model.users.UserProfile;
-import java.util.HashSet;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Класс обрабатывает приходящие сообщения, взятые из очереди сообщений (с сервера + события канала)
  */
-public class ServerMessageController implements Runnable
-{
-    
+public class ServerMessageController implements Runnable {
+
     private static final long SLEEP = 500L;
     private static final String SERVER_CHAT = "<Server>: ";
     private static final String RESPONSE_READING_EXCEPTION = "<Ошибка при чтении ответа с сервера>: ";
-    
-    private final MessageQueue<NetworkMessage> messageQueue = MessageQueue.getInstance();
-    private volatile boolean isActive = true;
-    private final MainWindowController mainAppCntrl;
     private final static Logger log = LoggerFactory.getLogger(ServerMessageController.class);
     private final static Marker fatal = MarkerFactory.getMarker("FATAL");
+    private final MessageQueue<NetworkMessage> messageQueue = MessageQueue.getInstance();
+    private final MainWindowController mainAppCntrl;
+    private volatile boolean isActive = true;
 
     /**
      * Конструктор принимает контроллер главного окна
-     * @param mainAppCntrl 
+     *
+     * @param mainAppCntrl
      */
-    public ServerMessageController(final MainWindowController mainAppCntrl)
-    {
+    public ServerMessageController(final MainWindowController mainAppCntrl) {
         this.mainAppCntrl = mainAppCntrl;
-    }    
-    
+    }
+
     @Override
-    public void run()
-    {
+    public void run() {
         log.debug("run");
-        try
-        {
+        try {
             start();
-        } catch (final InterruptedException ex)
-        {
+        } catch (final InterruptedException ex) {
             log.error(fatal, "run", ex);
         }
     }
-    
+
     /**
      * Останавливает цикл обработки сообщений от сервера
      */
-    public void stop()
-    {
+    public void stop() {
         log.debug("stop");
         isActive = false;
     }
-    
+
     /**
      * Главный цикл, обрабатывает сообщения от сервера
-     * @throws InterruptedException 
+     *
+     * @throws InterruptedException
      */
-    private void start() throws InterruptedException
-    {
+    private void start() throws InterruptedException {
         log.debug("start");
-        while (isActive)
-        {
+        while (isActive) {
             // Обработчик пришедших с сервера сообщений
-            while (messageQueue.hasMessages())
-            {
+            while (messageQueue.hasMessages()) {
                 final NetworkMessage takeMessage = messageQueue.takeMessage();
                 log.debug("from messageQueue taken: {}", takeMessage);
                 process(takeMessage);
             }
             log.trace("messageQueue is empty");
-            
+
             // Усыпляем поток
             Thread.sleep(SLEEP);
         }
     }
-    
+
     // Обработчик сообщения
-    private void process(final NetworkMessage netMsg)
-    {
+    private void process(final NetworkMessage netMsg) {
         log.debug("process netMsg={}", netMsg);
         // Обработка сообщения
-        switch (netMsg.getType())
-        {
+        switch (netMsg.getType()) {
             case LoginUserSuccess:
                 processLoginUserSuccess(netMsg);
                 break;
@@ -106,146 +97,122 @@ public class ServerMessageController implements Runnable
             case SendOnlineUsers:
                 processSendOnlineUsers(netMsg);
                 break;
-            
+
             case SendIncomingInvites:
                 processSendIncomingInvites(netMsg);
                 break;
-                
+
             case SendCurrentGame:
                 processSendCurrentGame(netMsg);
                 break;
             case GameActionError:
                 processGameError(netMsg);
                 break;
-                
+
             case MultipleMessage:
                 processMultipleMessage(netMsg);
                 break;
-            
+
             default:
                 log.error(fatal, "process: unknown NetworkMessage type; netMsg={}", netMsg);
                 break;
         }
     }
-    
+
     // Выводим сообщение в чат
-    private void processChatMsg(final NetworkMessage netMsg)
-    {
+    private void processChatMsg(final NetworkMessage netMsg) {
         log.debug("processChatMsg netMsg={}", netMsg);
-        try
-        {
+        try {
             final String newChatMsg = netMsg.getParam(NetworkMessage.TEXT, String.class);
             mainAppCntrl.addToChat(newChatMsg);
-        } catch (final IllegalRequestParameter ex)
-        {
+        } catch (final IllegalRequestParameter ex) {
             log.error(fatal, "exception, netMsg={}", netMsg, ex);
             mainAppCntrl.addToChat(RESPONSE_READING_EXCEPTION + ex.getLocalizedMessage());
         }
     }
 
-    private void processServerError(final NetworkMessage netMsg)
-    {
+    private void processServerError(final NetworkMessage netMsg) {
         log.debug("processServerError netMsg={}", netMsg);
-        try
-        {
+        try {
             final String err = netMsg.getParam(NetworkMessage.TEXT, String.class);
             mainAppCntrl.addToChat(SERVER_CHAT + err);
-        } catch (final IllegalRequestParameter ex)
-        {
+        } catch (final IllegalRequestParameter ex) {
             log.error(fatal, "exception, netMsg={}", netMsg, ex);
             mainAppCntrl.addToChat(RESPONSE_READING_EXCEPTION + ex.getLocalizedMessage());
         }
     }
 
-    private void processLoginUserSuccess(final NetworkMessage netMsg)
-    {
+    private void processLoginUserSuccess(final NetworkMessage netMsg) {
         log.debug("processLoginUserSuccess netMsg={}", netMsg);
-        try
-        {
+        try {
             // Получаем объект UserProfile
             final UserProfile userProfile = netMsg.getParam(NetworkMessage.USER, UserProfile.class);
-            
+
             // Посылаем событие на контроллер клиента
             mainAppCntrl.loginInfoUpdated(userProfile);
-        } catch (final IllegalRequestParameter ex)
-        {
+        } catch (final IllegalRequestParameter ex) {
             log.error(fatal, "exception, netMsg={}", netMsg, ex);
             mainAppCntrl.addToChat(RESPONSE_READING_EXCEPTION + ex.getLocalizedMessage());
         }
     }
 
-    private void processSendOnlineUsers(final NetworkMessage netMsg)
-    {
+    private void processSendOnlineUsers(final NetworkMessage netMsg) {
         log.debug("processSendOnlineUsers netMsg={}", netMsg);
-        try
-        {
+        try {
             final Set<UserProfile> onlineUserProfiles
                     = netMsg.getParam(NetworkMessage.USERS, HashSet.class);
             mainAppCntrl.onlineUserProfilesChanged(onlineUserProfiles);
-        } catch (final IllegalRequestParameter ex)
-        {
+        } catch (final IllegalRequestParameter ex) {
             log.error(fatal, "exception, netMsg={}", netMsg, ex);
             mainAppCntrl.addToChat(RESPONSE_READING_EXCEPTION + ex.getLocalizedMessage());
         }
     }
 
-    private void processSendIncomingInvites(final NetworkMessage netMsg)
-    {
+    private void processSendIncomingInvites(final NetworkMessage netMsg) {
         log.debug("processSendIncomingInvites netMsg={}", netMsg);
-        try
-        {
+        try {
             final Set<UserProfile> userProfilesInvites
                     = netMsg.getParam(NetworkMessage.INVITES, HashSet.class);
             mainAppCntrl.incomingInvitersChanged(userProfilesInvites);
-        } catch (final IllegalRequestParameter ex)
-        {
+        } catch (final IllegalRequestParameter ex) {
             log.error(fatal, "exception, netMsg={}", netMsg, ex);
             mainAppCntrl.addToChat(RESPONSE_READING_EXCEPTION + ex.getLocalizedMessage());
         }
     }
 
-    private void processSendCurrentGame(final NetworkMessage netMsg)
-    {
+    private void processSendCurrentGame(final NetworkMessage netMsg) {
         log.debug("processSendCurrentGame netMsg={}", netMsg);
-        try
-        {
+        try {
             final ChessGame game = netMsg.getParam(NetworkMessage.CURRENT_GAME, ChessGame.class, true);
             mainAppCntrl.currentGameUpdated(game);
-        } catch (final IllegalRequestParameter ex)
-        {
-            log.error(fatal, "exception, netMsg={}", netMsg, ex);
-            mainAppCntrl.addToChat(RESPONSE_READING_EXCEPTION + ex.getLocalizedMessage());
-        }
-    }
-    
-    private void processGameError(final NetworkMessage netMsg)
-    {
-        log.debug("processGameError netMsg={}", netMsg);
-        try
-        {
-            final String text = netMsg.getParam(NetworkMessage.TEXT, String.class);
-            mainAppCntrl.gameError(text);
-        } catch (final IllegalRequestParameter ex)
-        {
+        } catch (final IllegalRequestParameter ex) {
             log.error(fatal, "exception, netMsg={}", netMsg, ex);
             mainAppCntrl.addToChat(RESPONSE_READING_EXCEPTION + ex.getLocalizedMessage());
         }
     }
 
-    private void processMultipleMessage(final NetworkMessage netMsg)
-    {
-        log.debug("processMultipleMessage netMsg={}", netMsg);
-        try
-        {
-            final Set<NetworkMessage> messages = netMsg.getParam(NetworkMessage.MULTI_MESSAGES, HashSet.class);
-            
-            // Распаковываем сообщение - для каждого вложенного вызываем обработчик
-            for (final NetworkMessage subMsg : messages) process(subMsg);
-        } catch (final IllegalRequestParameter ex)
-        {
+    private void processGameError(final NetworkMessage netMsg) {
+        log.debug("processGameError netMsg={}", netMsg);
+        try {
+            final String text = netMsg.getParam(NetworkMessage.TEXT, String.class);
+            mainAppCntrl.gameError(text);
+        } catch (final IllegalRequestParameter ex) {
             log.error(fatal, "exception, netMsg={}", netMsg, ex);
             mainAppCntrl.addToChat(RESPONSE_READING_EXCEPTION + ex.getLocalizedMessage());
         }
     }
-    
+
+    private void processMultipleMessage(final NetworkMessage netMsg) {
+        log.debug("processMultipleMessage netMsg={}", netMsg);
+        try {
+            final Set<NetworkMessage> messages = netMsg.getParam(NetworkMessage.MULTI_MESSAGES, HashSet.class);
+
+            // Распаковываем сообщение - для каждого вложенного вызываем обработчик
+            for (final NetworkMessage subMsg : messages) process(subMsg);
+        } catch (final IllegalRequestParameter ex) {
+            log.error(fatal, "exception, netMsg={}", netMsg, ex);
+            mainAppCntrl.addToChat(RESPONSE_READING_EXCEPTION + ex.getLocalizedMessage());
+        }
+    }
+
 }

@@ -18,8 +18,7 @@ import edu.demidov.netchess.utils.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GameActionHandler implements NetworkMessageHandler
-{
+public class GameActionHandler implements NetworkMessageHandler {
     private static final String NO_SUCH_USER_IN_GAME_EXCEPTION = "В игре нет игрока с именем '%s'";
     private static final String INCORRECT_MOVE_COORDINATES_EXCEPTION = "Получены некорректные координаты хода";
     private final static Logger log = LoggerFactory.getLogger(GameActionHandler.class);
@@ -29,45 +28,39 @@ public class GameActionHandler implements NetworkMessageHandler
     private final ChessGames chessGames = ChessGames.getInstance();
     private final ChessLogic gameLogic = ChessLogicImpl.getInstance();
 
-    public static synchronized GameActionHandler getInstance()
-    {
-        if (instance == null)
-        {
+    private GameActionHandler() {
+    }
+
+    public static synchronized GameActionHandler getInstance() {
+        if (instance == null) {
             instance = new GameActionHandler();
         }
         return instance;
     }
 
-    private GameActionHandler() {}
-
     @Override
-    public void process(final ServerNetworkMessage snm) throws IllegalRequestParameter
-    {
+    public void process(final ServerNetworkMessage snm) throws IllegalRequestParameter {
         log.trace("process snm={}", snm);
         final User user = snm.getSender();
-        try
-        {
+        try {
             // Достаём объект игрового действия
             final ChessAction chessGameAction = snm.getNetMsg().getParam(NetworkMessage.GAME_ACTION, ChessAction.class);
 
             final ChessGame game = chessGames.getCurrentGame(user);
-            if (game == null)
-            {
+            if (game == null) {
                 return;
             }
 
             final ChessPlayer player = chessGames.getPlayer(user, game);
-            
+
             playerDoAction(player, chessGameAction, game);
-        } catch (final GameMoveException ex)
-        {
+        } catch (final GameMoveException ex) {
             log.trace("process: {}, snm={}", ex.getLocalizedMessage(), snm);
 
             final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.GameActionError);
             errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
             connectionManager.sendToUser(user, errMsg);
-        } catch (final NoSuchUserInGameException e)
-        {
+        } catch (final NoSuchUserInGameException e) {
             log.trace("NoSuchUserInGameException");
 
             final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.GameActionError);
@@ -83,15 +76,13 @@ public class GameActionHandler implements NetworkMessageHandler
      * Возвращает true, если произошло игровое изменение и его надо отобразить игрокам
      */
     public void playerDoAction(final ChessPlayer player, final ChessAction chessAction, final ChessGame game)
-            throws GameMoveException, IllegalRequestParameter
-    {
+            throws GameMoveException, IllegalRequestParameter {
         log.debug("playerDoAction player={}, chessAction={}, game={}", player, chessAction, game);
 
         assert player != null;
         assert game != null;
 
-        switch (chessAction.getType())
-        {
+        switch (chessAction.getType()) {
             case Move:
                 processMove(player, game, chessAction);
                 break;
@@ -111,20 +102,17 @@ public class GameActionHandler implements NetworkMessageHandler
     }
 
     private void processMove(final ChessPlayer player, final ChessGame game,
-                             final ChessAction chessAction) throws IllegalRequestParameter, GameMoveException
-    {
+                             final ChessAction chessAction) throws IllegalRequestParameter, GameMoveException {
         log.trace("processMove player={}, game={}, chessAction={}", player, game, chessAction);
 
         final Point[] points = chessAction.getPoints();
-        if (points == null || points.length < 2)
-        {
+        if (points == null || points.length < 2) {
             throw new IllegalRequestParameter(INCORRECT_MOVE_COORDINATES_EXCEPTION);
         }
 
         final Point fromPoint = chessAction.getPoints()[0];
         final Point toPoint = chessAction.getPoints()[1];
-        if (fromPoint == null || toPoint == null)
-        {
+        if (fromPoint == null || toPoint == null) {
             throw new IllegalRequestParameter(INCORRECT_MOVE_COORDINATES_EXCEPTION);
         }
 
@@ -132,8 +120,7 @@ public class GameActionHandler implements NetworkMessageHandler
     }
 
     private void processChooseFigureInsteadPawn(final ChessPlayer player,
-                                                final ChessGame game, final ChessAction chessAction) throws GameMoveException, IllegalRequestParameter
-    {
+                                                final ChessGame game, final ChessAction chessAction) throws GameMoveException, IllegalRequestParameter {
         log.trace("processChooseFigureInsteadPawn player={}, game={}, chessAction={}", player, game, chessAction);
 
         final ChessFigure.Type chosenFigureType = chessAction.getChooseFigureType();
@@ -141,15 +128,13 @@ public class GameActionHandler implements NetworkMessageHandler
     }
 
     private void processSurrender(final ChessPlayer player, final ChessGame game)
-            throws GameMoveException
-    {
+            throws GameMoveException {
         log.trace("processSurrender player={}, game={}", player, game);
 
         gameLogic.playerSurrender(player, game);
     }
 
-    private void processOfferedDraw(final ChessPlayer offeredDrawPlayer, final ChessGame game)
-    {
+    private void processOfferedDraw(final ChessPlayer offeredDrawPlayer, final ChessGame game) {
         log.trace("processOfferedDraw offeredDrawPlayer={}, game={}", offeredDrawPlayer, game);
 
         gameLogic.playerOfferedDraw(offeredDrawPlayer, game);

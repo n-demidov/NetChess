@@ -8,40 +8,35 @@ import edu.demidov.netchess.server.model.network.ServerNetworkMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConnectionOpenedHandler implements NetworkMessageHandler
-{
+public class ConnectionOpenedHandler implements NetworkMessageHandler {
 
-    private final ConnectionManager connectionManager = ConnectionManager.getInstance();
-    
-    private static ConnectionOpenedHandler instance;
     private final static Logger log = LoggerFactory.getLogger(ConnectionOpenedHandler.class);
+    private static ConnectionOpenedHandler instance;
+    private final ConnectionManager connectionManager = ConnectionManager.getInstance();
 
-    public static synchronized ConnectionOpenedHandler getInstance()
-    {
-        if (instance == null)
-        {
+    private ConnectionOpenedHandler() {
+    }
+
+    public static synchronized ConnectionOpenedHandler getInstance() {
+        if (instance == null) {
             instance = new ConnectionOpenedHandler();
         }
         return instance;
     }
 
-    private ConnectionOpenedHandler() {}
-
     /**
      * Обрабатывает сообщение о том, что новый клиент подключился к серверу.
      * Вызывает соответствующее событие у экзмепляра ConnectionManager.
+     *
      * @param snm
-     * @throws IllegalRequestParameter 
+     * @throws IllegalRequestParameter
      */
     @Override
-    public void process(final ServerNetworkMessage snm) throws IllegalRequestParameter
-    {
+    public void process(final ServerNetworkMessage snm) throws IllegalRequestParameter {
         log.trace("process snm={}", snm);
-        try
-        {
+        try {
             connectionManager.connectionOpened(snm.getChannel(), snm.getTimeReceived());
-        } catch (final IPAddressIsBanException ex)
-        {
+        } catch (final IPAddressIsBanException ex) {
             log.trace("process: {}, snm={}", ex.getLocalizedMessage(), snm);
             // Отправляем ошибку
             final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.SomeError);

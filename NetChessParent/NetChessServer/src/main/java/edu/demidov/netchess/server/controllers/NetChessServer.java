@@ -11,14 +11,16 @@ import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.network.ServerNetworkMessage;
 import edu.demidov.netchess.server.model.network.netty.NettyServer;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory; 
+import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-public class NetChessServer
-{
+public class NetChessServer {
+
     private static final long SLEEP = 1000L;
-    
+    private final static Logger log = LoggerFactory.getLogger(NetChessServer.class);
+    private final static Marker fatal = MarkerFactory.getMarker("FATAL");
+    private static NetChessServer instance;
     private NettyServer nettyServer;
     private MessageQueue<ServerNetworkMessage> messageQueue;
     private MessageHandlersDispatcher handlersDispatcher;
@@ -26,32 +28,34 @@ public class NetChessServer
     private Invitations inviteManager;
     private ChessGames chessGames;
     private ClientUpdater clientUpdater;
-    
-    private final static Logger log = LoggerFactory.getLogger(NetChessServer.class);
-    private final static Marker fatal = MarkerFactory.getMarker("FATAL");
-    private static NetChessServer instance;
 
-    public static synchronized NetChessServer getInstance()
-    {
-        if (instance == null)
-        {
+    private NetChessServer() {
+        configureObjects();
+    }
+
+    public static synchronized NetChessServer getInstance() {
+        if (instance == null) {
             instance = new NetChessServer();
         }
         return instance;
     }
-    
-    private NetChessServer()
-    {
-        configureObjects();
+
+    public static void main(final String[] args) {
+        try {
+            NetChessServer.getInstance().start();
+        } catch (final InterruptedException ex) {
+            log.error(fatal, "main args={}", args, ex);
+            System.out.println(ex.getLocalizedMessage());
+        }
     }
-    
+
     /**
      * Запускает игровой сервер.
      * Запускает сервер по заданному ip и порту. И ожидает подключения клиентов.
-     * @throws InterruptedException 
+     *
+     * @throws InterruptedException
      */
-    public void start() throws InterruptedException
-    {
+    public void start() throws InterruptedException {
         log.info("start");
 
         nettyServer.run();
@@ -59,17 +63,15 @@ public class NetChessServer
         // Запускаем цикл по обработке сообщений
         log.info("ready");
         boolean isActive = true;
-        while (isActive)
-        {
+        while (isActive) {
             // Обрабатываем входящие сообщения с клиента и от NettyServer
-            while (messageQueue.hasMessages())
-            {
+            while (messageQueue.hasMessages()) {
                 final ServerNetworkMessage snm = messageQueue.takeMessage();
                 log.trace("from messageQueue taken {}", snm);
                 handlersDispatcher.process(snm);    // Обрабатывает входящее сообщение
             }
             log.trace("messageQueue is empty");
-            
+
             connectionManager.manageConnections();
             inviteManager.checkTTLs();          // Вызываем обработчик временем жизни приглашений
             chessGames.manageGamesTime();      // Вызываем обработчик времени партий
@@ -81,18 +83,6 @@ public class NetChessServer
 
         // Закрываем NettyServer
         nettyServer.stop();
-    }
-
-    public static void main(final String[] args)
-    {
-        try
-        {
-            NetChessServer.getInstance().start();
-        } catch (final InterruptedException ex)
-        {
-            log.error(fatal, "main args={}", args, ex);
-            System.out.println(ex.getLocalizedMessage());
-        }
     }
 
     private void configureObjects() {
@@ -116,4 +106,5 @@ public class NetChessServer
         clientUpdater.setChessGames(chessGames);
         clientUpdater.setInviteManager(inviteManager);
     }
+
 }

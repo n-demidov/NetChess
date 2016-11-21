@@ -18,37 +18,33 @@ import edu.demidov.netchess.server.model.exceptions.AccessConnectedUserException
 import edu.demidov.netchess.server.model.invitations.Invitations;
 import edu.demidov.netchess.server.model.network.ConnectionManager;
 import edu.demidov.netchess.server.model.network.ServerNetworkMessage;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Класс отвечает за обработку сообщений ServerNetworkMessage:
  * - проверяет авторизацию канала;
  * - подбирает подходящий обработчик из хэш-таблицы (каждому типу должен соответствовать свой обраточик).
  */
-public class MessageHandlersDispatcher
-{
+public class MessageHandlersDispatcher {
 
+    private final static Logger log = LoggerFactory.getLogger(MessageHandlersDispatcher.class);
+    private final static Marker fatal = MarkerFactory.getMarker("FATAL");
+    private static MessageHandlersDispatcher instance;
     private final ConnectionManager connectionManager = ConnectionManager.getInstance();
-    
     // Таблица соответствий типов сообщений (NetworkMessage) и обработчиков для них
     private final Map<NetworkMessage.Type, NetworkMessageHandler> HANDLERS;
-    
     // Типы сообщений, для которых не надо проверять атворизацию. Для них sender будет null в ServerNetworkMessage.
     private final List<NetworkMessage.Type> EXCLUDED_CHECK_AUTH;
 
-    private static MessageHandlersDispatcher instance;
-    private final static Logger log = LoggerFactory.getLogger(MessageHandlersDispatcher.class);
-    private final static Marker fatal = MarkerFactory.getMarker("FATAL");
-
-    public MessageHandlersDispatcher(final Invitations invitations)
-    {
+    public MessageHandlersDispatcher(final Invitations invitations) {
         final InviteToPlayResponseHandler inviteToPlayResponseHandler = InviteToPlayResponseHandler.getInstance();
         inviteToPlayResponseHandler.setInviteManager(invitations);
 
@@ -77,36 +73,33 @@ public class MessageHandlersDispatcher
         EXCLUDED_CHECK_AUTH.add(NetworkMessage.Type.ConnectionOpened);
         EXCLUDED_CHECK_AUTH.add(NetworkMessage.Type.ConnectionClosed);
     }
-    
+
     /**
      * Обрабатывает сообщение (ServerNetworkMessage).
      * Ищет и вызывает нужный обработчик для сообщения, если нужно - проверяет авторизацию.
-     * @param snm 
+     *
+     * @param snm
      */
-    public void process(final ServerNetworkMessage snm)
-    {
+    public void process(final ServerNetworkMessage snm) {
         log.trace("process snm={}", snm);
-        try
-        {
+        try {
             // Вызываем проверку авторизации для канала
             checkAuthConnection(snm);
             // Ищем нужный обработчик клиентского сообщения
             dispatchMessageToHandler(snm);
-        } catch (final AccessConnectedUserException ex)
-        {
+        } catch (final AccessConnectedUserException ex) {
             // Отправляем ошибку
             final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.AuthError);
             errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
             connectionManager.sendAndClose(snm.getChannel(), errMsg);
-        } catch (final IllegalRequestParameter ex)
-        {
+        } catch (final IllegalRequestParameter ex) {
             log.trace("process: illegal request parameter from client: {}, snm={}", ex.getLocalizedMessage(), snm);
             final NetworkMessage errMsg = new NetworkMessage(NetworkMessage.Type.SomeError);
             errMsg.put(NetworkMessage.TEXT, ex.getLocalizedMessage());
             connectionManager.sendAndClose(snm.getChannel(), errMsg);
         }
     }
-    
+
     /**
      * Проверяет авторизацию установленного подключения.
      * Если всё ок - добавляет найденного пользователя в  экзмепляр ServerNetworkMessage,
@@ -114,33 +107,28 @@ public class MessageHandlersDispatcher
      * Не проверяет авторизацию для некоторых типов запросов.
      */
     private void checkAuthConnection(final ServerNetworkMessage snm)
-            throws AccessConnectedUserException
-    {
+            throws AccessConnectedUserException {
         log.trace("checkAuthConnection snm={}", snm);
         final NetworkMessage.Type typeMsg = snm.getNetMsg().getType();
-        
+
         // Исключения, для которых проводить проверку не надо. Для них польз-ль будет null.
-        if (EXCLUDED_CHECK_AUTH.contains(typeMsg))
-        {
+        if (EXCLUDED_CHECK_AUTH.contains(typeMsg)) {
             log.trace("checkAuthConnection: cancel auth (typeMsg={}), snm={}", typeMsg, snm);
             return;
-        } 
+        }
 
         snm.setSender(connectionManager.accessConnectedUser(snm.getChannel()));
     }
-    
+
     // Ищет и вызывает нужный обработчик для сообщения
     private void dispatchMessageToHandler(final ServerNetworkMessage snm)
-            throws IllegalRequestParameter
-    {
+            throws IllegalRequestParameter {
         log.trace("dispatchMessage snm={}", snm);
         final NetworkMessage.Type msgType = snm.getNetMsg().getType();
-        
-        if (HANDLERS.containsKey(msgType))
-        {
+
+        if (HANDLERS.containsKey(msgType)) {
             HANDLERS.get(msgType).process(snm);
-        } else
-        {
+        } else {
             log.error(fatal, "process: can't find handler for '{}' NetworkMessage.Type"
                     + " (in the map of handlers); snm={}", msgType, snm);
         }

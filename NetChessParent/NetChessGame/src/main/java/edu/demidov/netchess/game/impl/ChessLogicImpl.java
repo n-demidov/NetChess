@@ -3,16 +3,15 @@ package edu.demidov.netchess.game.impl;
 import edu.demidov.netchess.common.model.exceptions.game.chess.GameMoveException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.InvalidBoardSizeException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.InvalidPointException;
-import edu.demidov.netchess.game.exceptions.NoKingOnFieldException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.NoNextPlayerFoundException;
 import edu.demidov.netchess.common.model.game.chess.ChessField;
 import edu.demidov.netchess.common.model.game.chess.ChessFigure;
 import edu.demidov.netchess.common.model.game.chess.ChessGame;
 import edu.demidov.netchess.common.model.game.chess.ChessPlayer;
-import edu.demidov.netchess.game.rules.ChessRules;
-import edu.demidov.netchess.game.rules.impl.ChessRulesImpl;
 import edu.demidov.netchess.game.api.ChessLogic;
 import edu.demidov.netchess.game.api.ChessLogicObserver;
+import edu.demidov.netchess.game.exceptions.NoKingOnFieldException;
+import edu.demidov.netchess.game.rules.ChessRules;
 import edu.demidov.netchess.utils.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,13 +21,13 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
-public class ChessLogicImpl implements ChessLogic
-{
+public class ChessLogicImpl implements ChessLogic {
+
     private static final String UNKNOWN_FIGURE_TYPE_EXCEPTION = "Неизвестный тип фигуры. Выберите ферзя, ладью, слона или коня.";
     private static final String MATE = "Мат";
     private static final String TIME_IS_UP = "Время истекло";
     private static final String OPPONENT_SURRENDER = "Оппонент сдался";
-    private static final String STALEMATE  = "Пат";
+    private static final String STALEMATE = "Пат";
     private static final String PLAYERS_AGREED_TO_DRAW = "Оппоненты согласились на ничью";
     private static final String GAME_ALREADY_FINISHED = "Партия уже завершена";
     private static final String CURRENT_PLAYER_MUST_CHOOSE_FIGURE_EXCEPTION = "Не удалось найти пешку на доске";
@@ -44,74 +43,61 @@ public class ChessLogicImpl implements ChessLogic
     private final List<ChessLogicObserver> listeners;
     private ChessRules chessRules;
 
-    public static synchronized ChessLogicImpl getInstance()
-    {
-        if (instance == null)
-        {
+    private ChessLogicImpl() {
+        listeners = new ArrayList<>();
+    }
+
+    public static synchronized ChessLogicImpl getInstance() {
+        if (instance == null) {
             instance = new ChessLogicImpl();
         }
         return instance;
     }
 
-    private ChessLogicImpl()
-    {
-        listeners = new ArrayList<>();
-    }
-
     @Override
-    public void setChessRules(final ChessRules chessRules)
-    {
+    public void setChessRules(final ChessRules chessRules) {
         this.chessRules = chessRules;
     }
 
     @Override
-    public void addListener(final ChessLogicObserver listener)
-    {
+    public void addListener(final ChessLogicObserver listener) {
         listeners.add(listener);
     }
 
     @Override
-    public void removeListener(final ChessLogicObserver listener)
-    {
+    public void removeListener(final ChessLogicObserver listener) {
         listeners.remove(listener);
     }
 
     @Override
-    public void notifyListenersThatGameChanged(final ChessGame game)
-    {
+    public void notifyListenersThatGameChanged(final ChessGame game) {
         log.trace("notifyListenersThatGameChanged game={}", game);
 
-        for (final ChessLogicObserver listener : listeners)
-        {
+        for (final ChessLogicObserver listener : listeners) {
             listener.gameChanged(game);
         }
     }
 
     @Override
-    public void notifyListenersThatGameEnded(final ChessGame game, final ChessPlayer winner)
-    {
-        for (final ChessLogicObserver listener : listeners)
-        {
+    public void notifyListenersThatGameEnded(final ChessGame game, final ChessPlayer winner) {
+        for (final ChessLogicObserver listener : listeners) {
             listener.gameEnded(game, winner);
         }
     }
 
     @Override
-    public ChessGame startGame(final List<ChessPlayer> chessPlayers)
-    {
+    public ChessGame startGame(final List<ChessPlayer> chessPlayers) {
         log.debug("startGame chessPlayers={}", chessPlayers);
 
         ChessGame game = null;
 
-        try
-        {
+        try {
             final ChessField field = new ChessField(CHESS_SIZE);
             game = new ChessGame(
                     RANDOM.nextInt(RANDOM_ID_MAX),
                     field,
                     chessPlayers);
-        } catch (final InvalidBoardSizeException | NoNextPlayerFoundException | InvalidPointException e)
-        {
+        } catch (final InvalidBoardSizeException | NoNextPlayerFoundException | InvalidPointException e) {
             log.error("Exception, ", e);
         }
 
@@ -121,12 +107,9 @@ public class ChessLogicImpl implements ChessLogic
 
     @Override
     public void playerMoveFigure(final ChessPlayer player, final ChessGame game,
-                                 final Point fromPoint, final Point toPoint) throws GameMoveException
-    {
+                                 final Point fromPoint, final Point toPoint) throws GameMoveException {
         log.debug("playerMoveFigure player={}, game={}, fromPoint={}, toPoint={}", player, game, fromPoint, toPoint);
-
-        try
-        {
+        try {
             final long currentMoveTime = countCurrentMoveMilliseconds(game);  // Подсчитываем время текущего хода
 
             checkThatGameNotFinished(game);
@@ -144,8 +127,7 @@ public class ChessLogicImpl implements ChessLogic
             game.moveFigure(fromPoint, toPoint);
 
             processIfCurrentPlayerChanged(game, player, currentMoveTime);
-        } catch (final NoKingOnFieldException | NoNextPlayerFoundException | InvalidPointException ex)
-        {
+        } catch (final NoKingOnFieldException | NoNextPlayerFoundException | InvalidPointException ex) {
             log.warn("Exception: player={}, game={}, fromPoint={}, toPoint={}", player, game, fromPoint, toPoint, ex);
             throw new GameMoveException(ex.toString());
         }
@@ -155,25 +137,21 @@ public class ChessLogicImpl implements ChessLogic
 
     @Override
     public void playerTransformPawn(final ChessPlayer player, final ChessGame game,
-                                    final ChessFigure.Type chosenFigureType) throws GameMoveException
-    {
+                                    final ChessFigure.Type chosenFigureType) throws GameMoveException {
         log.trace("playerTransformPawn player={}, game={}, chosenFigureType={}", player, game, chosenFigureType);
 
-        if (game.isFinished())
-        {
+        if (game.isFinished()) {
             return;
         }
 
-        try
-        {
+        try {
             final long currentMoveTime = countCurrentMoveMilliseconds(game);  // Подсчитываем время текущего хода
 
             checkThatGameNotFinished(game);
             checkThatPlayerIsCurrent(player, game);
 
             // Проверяем может ли текущий игрок выбрать фигуру
-            if (!game.isCurrentPlayerChoosingFigure())
-            {
+            if (!game.isCurrentPlayerChoosingFigure()) {
                 return;
             }
 
@@ -183,8 +161,7 @@ public class ChessLogicImpl implements ChessLogic
             game.transformPawn(player, chosenFigureType);
 
             processIfCurrentPlayerChanged(game, player, currentMoveTime);
-        } catch (final InvalidPointException | NoKingOnFieldException | NoNextPlayerFoundException ex)
-        {
+        } catch (final InvalidPointException | NoKingOnFieldException | NoNextPlayerFoundException ex) {
             log.error("Exception: game={}, player={}, chosenFigureType={}", game, player, chosenFigureType, ex);
             throw new GameMoveException(ex.toString());
         }
@@ -194,37 +171,30 @@ public class ChessLogicImpl implements ChessLogic
 
     @Override
     public void playerSurrender(final ChessPlayer player, final ChessGame game)
-            throws GameMoveException
-    {
+            throws GameMoveException {
         log.trace("playerSurrender, game={}, player={}", game, player);
 
-        if (game.isFinished())
-        {
+        if (game.isFinished()) {
             return;
         }
 
-        try
-        {
+        try {
             endGame(game, game.getNextPlayer(player), OPPONENT_SURRENDER);
-        } catch (final NoNextPlayerFoundException ex)
-        {
+        } catch (final NoNextPlayerFoundException ex) {
             log.error("Exception: game={}, player={}", game, player, ex);
             throw new GameMoveException(NO_NEXT_PLAYER_FOUND_EXCEPTION);
         }
     }
 
     @Override
-    public void playerOfferedDraw(final ChessPlayer offeredDrawPlayer, final ChessGame game)
-    {
+    public void playerOfferedDraw(final ChessPlayer offeredDrawPlayer, final ChessGame game) {
         log.trace("playerOfferedDraw, offeredDrawPlayer={}, game={}", offeredDrawPlayer, game);
 
-        if (game.isFinished())
-        {
+        if (game.isFinished()) {
             return;
         }
 
-        if (offeredDrawPlayer.isOfferedDraw())
-        {
+        if (offeredDrawPlayer.isOfferedDraw()) {
             return;
         }
 
@@ -232,21 +202,17 @@ public class ChessLogicImpl implements ChessLogic
 
         // Подсчитываем все ли игроки согласны на ничью
         boolean isAllUsersWantDraw = true;
-        for (final ChessPlayer otherPlayer : game.getPlayers())
-        {
-            if (!otherPlayer.isOfferedDraw())
-            {
+        for (final ChessPlayer otherPlayer : game.getPlayers()) {
+            if (!otherPlayer.isOfferedDraw()) {
                 isAllUsersWantDraw = false;
                 break;
             }
         }
 
-        if (isAllUsersWantDraw)
-        {
+        if (isAllUsersWantDraw) {
             // Объявляем ничью
             endGame(game, null, PLAYERS_AGREED_TO_DRAW);
-        } else
-        {
+        } else {
             // Уведомляем других, что один из игроков предложил ничью
             notifyListenersThatGameChanged(game);
         }
@@ -254,29 +220,26 @@ public class ChessLogicImpl implements ChessLogic
 
     /**
      * Проверяет на завершение партии по времени
+     *
      * @throws NoNextPlayerFoundException
      */
     @Override
-    public void checkGameForEndByTime(final ChessGame game) throws NoNextPlayerFoundException
-    {
+    public void checkGameForEndByTime(final ChessGame game) throws NoNextPlayerFoundException {
         log.trace("checkGameForEndByTime game={}", game);
 
-        if (game.isFinished())
-        {
+        if (game.isFinished()) {
             return;
         }
 
         final ChessPlayer currentPlayer = game.getCurrentPlayer();
-        if (currentPlayer == null)
-        {
+        if (currentPlayer == null) {
             return;
         }
 
         final long currentMoveTime = countCurrentMoveMilliseconds(game);
         final long currentPlayerNewTimeLeft = currentPlayer.getTimeLeft() - currentMoveTime;
 
-        if (currentPlayerNewTimeLeft < 0)
-        {
+        if (currentPlayerNewTimeLeft < 0) {
             endGame(game, game.getNextPlayer(currentPlayer), TIME_IS_UP);
         }
     }
@@ -284,34 +247,28 @@ public class ChessLogicImpl implements ChessLogic
     /* Проверяет не закончилась ли игра, либо не истекло ли время.
        В случае ошибки - выбрасывает исключение.
        */
-    private void checkThatGameNotFinished(final ChessGame game) throws GameMoveException
-    {
+    private void checkThatGameNotFinished(final ChessGame game) throws GameMoveException {
         log.trace("checkThatGameNotFinished game={}", game);
-        try
-        {
+        try {
             // Проверяем не истекло ли время для текущей партии
             checkGameForEndByTime(game);
 
             // Проверяем не закончилась ли игра
-            if (game.isFinished())
-            {
+            if (game.isFinished()) {
                 throw new GameMoveException(GAME_ALREADY_FINISHED);
             }
-        } catch (final NoNextPlayerFoundException ex)
-        {
+        } catch (final NoNextPlayerFoundException ex) {
             log.error("Exception: game={}", game, ex);
             throw new GameMoveException(NO_NEXT_PLAYER_FOUND_EXCEPTION);
         }
     }
 
     // Проверяет ходит ли сейчас этот игрок
-    private void checkThatPlayerIsCurrent(final ChessPlayer player, final ChessGame game) throws GameMoveException
-    {
+    private void checkThatPlayerIsCurrent(final ChessPlayer player, final ChessGame game) throws GameMoveException {
         log.trace("checkThatPlayerIsCurrent player={}, game={}", player, game);
         final ChessPlayer currentPlayer = game.getCurrentPlayer();
 
-        if (!player.equals(currentPlayer))
-        {
+        if (!player.equals(currentPlayer)) {
             throw new GameMoveException(String.format(
                     MOVE_SEQUENCE_EXCEPTION,
                     currentPlayer == null ? "" : currentPlayer.getName()));
@@ -324,10 +281,8 @@ public class ChessLogicImpl implements ChessLogic
     */
     private void processIfCurrentPlayerChanged(final ChessGame game,
                                                final ChessPlayer prevPlayer, final long currentMoveTime)
-            throws NoKingOnFieldException, NoNextPlayerFoundException
-    {
-        if (!prevPlayer.equals(game.getCurrentPlayer()))
-        {
+            throws NoKingOnFieldException, NoNextPlayerFoundException {
+        if (!prevPlayer.equals(game.getCurrentPlayer())) {
             // Проверяем нет ли мата/пата
             checkGameForEndByPosition(game);
 
@@ -338,8 +293,7 @@ public class ChessLogicImpl implements ChessLogic
 
     // Проверяет игру на окончание партии по структуре доски
     private void checkGameForEndByPosition(final ChessGame game)
-            throws NoKingOnFieldException, NoNextPlayerFoundException
-    {
+            throws NoKingOnFieldException, NoNextPlayerFoundException {
         log.trace("checkGameForEndByPosition game={}", game);
         final ChessPlayer currentPlayer = game.getCurrentPlayer();
         final ChessField field = game.getField();
@@ -347,43 +301,36 @@ public class ChessLogicImpl implements ChessLogic
         /* Если не осталось ни одного допустимого хода для текущего игрока,
         то это либо мат (если сейчас шах), либо пат (если шаха нет).
         */
-        if (chessRules.isNoMoreMoves(currentPlayer.getColor(), field))
-        {
-            if (chessRules.isCheckForPlayer(currentPlayer.getColor(), field))
-            {
+        if (chessRules.isNoMoreMoves(currentPlayer.getColor(), field)) {
+            if (chessRules.isCheckForPlayer(currentPlayer.getColor(), field)) {
                 endGame(game, game.getNextPlayer(currentPlayer), MATE);     // мат
-            } else
-            {
+            } else {
                 endGame(game, null, STALEMATE);     // пат
             }
         }
     }
 
     // Завершает партию
-    private void endGame(final ChessGame game, final ChessPlayer winner, final String reasonResult)
-    {
+    private void endGame(final ChessGame game, final ChessPlayer winner, final String reasonResult) {
         log.debug("endGame game={}, winner={}, reasonResult={}", game, winner, reasonResult);
 
-        try
-        {
+        try {
             game.end(winner, reasonResult);
 
             notifyListenersThatGameEnded(game, winner);
-        } catch (final NoNextPlayerFoundException ex)
-        {
+        } catch (final NoNextPlayerFoundException ex) {
             log.error("Exception: game={}, winner={}, reasonResult={}", game, winner, reasonResult, ex);
         }
     }
 
-    private long countCurrentMoveMilliseconds(final ChessGame game)
-    {
+    private long countCurrentMoveMilliseconds(final ChessGame game) {
         return Calendar.getInstance().getTime().getTime() - game.getCurrentMoveStarted().getTime();
     }
 
     private void checkChooseFigureInsteadPawn(ChessFigure.Type chosenFigureType) throws GameMoveException {
-        if (chosenFigureType == null || chosenFigureType == ChessFigure.Type.King || chosenFigureType == ChessFigure.Type.Pawn)
-        {
+        if (chosenFigureType == null || chosenFigureType == ChessFigure.Type.King || chosenFigureType == ChessFigure.Type.Pawn) {
             throw new GameMoveException(UNKNOWN_FIGURE_TYPE_EXCEPTION);
         }
     }
+    
 }

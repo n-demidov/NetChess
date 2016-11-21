@@ -8,34 +8,31 @@ import edu.demidov.netchess.server.model.users.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GetOnlineUsersHandler implements NetworkMessageHandler
-{
+public class GetOnlineUsersHandler implements NetworkMessageHandler {
 
+    private final static Logger log = LoggerFactory.getLogger(GetOnlineUsersHandler.class);
+    private static GetOnlineUsersHandler instance;
     private final ConnectionManager connectionManager = ConnectionManager.getInstance();
     private final ClientUpdater clientUpdater = ClientUpdater.getInstance();
-    
-    private static GetOnlineUsersHandler instance;
-    private final static Logger log = LoggerFactory.getLogger(GetOnlineUsersHandler.class);
 
-    public static synchronized GetOnlineUsersHandler getInstance()
-    {
-        if (instance == null)
-        {
+    private GetOnlineUsersHandler() {
+    }
+
+    public static synchronized GetOnlineUsersHandler getInstance() {
+        if (instance == null) {
             instance = new GetOnlineUsersHandler();
         }
         return instance;
     }
 
-    private GetOnlineUsersHandler() {}
-
     /**
      * Отправляет пользователю список он-лайн игроков
+     *
      * @param snm
-     * @throws IllegalRequestParameter 
+     * @throws IllegalRequestParameter
      */
     @Override
-    public void process(final ServerNetworkMessage snm) throws IllegalRequestParameter
-    {
+    public void process(final ServerNetworkMessage snm) throws IllegalRequestParameter {
         log.trace("process snm={}", snm);
         final User sender = snm.getSender();
         connectionManager.sendToUser(sender, clientUpdater.getOnlineUsersMsg(sender));

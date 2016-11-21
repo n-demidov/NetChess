@@ -1,15 +1,15 @@
 package edu.demidov.netchess.common.model.users;
 
-import java.util.Random;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
-public class UserProfileTest
-{
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
+
+public class UserProfileTest {
 
     @Test
-    public void UserProfile_8args()
-    {
+    public void UserProfile_8args() {
         final Random random = new Random();
         final String inputName = "testName";
         final int inputRank = random.nextInt(999);
@@ -19,7 +19,7 @@ public class UserProfileTest
         final int inputTotalTimeOnServer = random.nextInt(999);
         final boolean inputInvited = true;
         final boolean inputPlaying = true;
-        
+
         final UserProfile profile = new UserProfile(inputName, inputRank, inputWins, inputDefeats, inputDraws, inputTotalTimeOnServer, inputInvited, inputPlaying);
 
         assertEquals(inputName, profile.getName());
@@ -33,29 +33,27 @@ public class UserProfileTest
     }
 
     @Test
-    public void testSetInvited()
-    {
+    public void testSetInvited() {
         final boolean inputValue = true;
-        
+
         final UserProfile profile = new UserProfile();
         profile.setInvited(inputValue);
-        
+
         final boolean actualValue = profile.isInvited();
 
         assertEquals(inputValue, actualValue);
     }
-    
+
     @Test
-    public void testSetPlaying()
-    {
+    public void testSetPlaying() {
         final boolean inputValue = true;
-        
+
         final UserProfile profile = new UserProfile();
         profile.setPlaying(inputValue);
-        
+
         final boolean actualValue = profile.isPlaying();
 
         assertEquals(inputValue, actualValue);
     }
-    
+
 }

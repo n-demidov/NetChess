@@ -17,10 +17,15 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class ChessLogicImplTest
-{
+public class ChessLogicImplTest {
     private final ChessLogicImpl chessLogic = ChessLogicImpl.getInstance();
     private ChessLogicObserver chessLogicObserver;
 
@@ -29,10 +34,9 @@ public class ChessLogicImplTest
     private ChessPlayer nextPlayer;
 
     @Before
-    public void before() throws Exception
-    {
+    public void before() throws Exception {
         chessLogic.removeListener(chessLogicObserver);
-        chessLogicObserver = mock (ChessLogicObserver.class);
+        chessLogicObserver = mock(ChessLogicObserver.class);
         chessLogic.addListener(chessLogicObserver);
 
         nextPlayer = mock(ChessPlayer.class);
@@ -50,19 +54,12 @@ public class ChessLogicImplTest
     }
 
 
-
-
-
-
-
     @Test
-    public void testPlayerTransformPawn_WhenGoodFigures() throws Exception
-    {
+    public void testPlayerTransformPawn_WhenGoodFigures() throws Exception {
         final List<ChessFigure.Type> figures = new ArrayList<>(Arrays.asList(
                 ChessFigure.Type.Queen, ChessFigure.Type.Castle, ChessFigure.Type.Bishop, ChessFigure.Type.Knight));
 
-        for (final ChessFigure.Type figure : figures)
-        {
+        for (final ChessFigure.Type figure : figures) {
             before();
             when(game.isCurrentPlayerChoosingFigure()).thenReturn(true);
 
@@ -75,20 +72,19 @@ public class ChessLogicImplTest
     }
 
     @Test
-    public void testPlayerTransformPawn_WhenWrongFigures() throws Exception
-    {
+    public void testPlayerTransformPawn_WhenWrongFigures() throws Exception {
         final List<ChessFigure.Type> figures = new ArrayList<>(Arrays.asList(
                 ChessFigure.Type.Pawn, ChessFigure.Type.King, null));
 
-        for (final ChessFigure.Type figure : figures)
-        {
+        for (final ChessFigure.Type figure : figures) {
             before();
             when(game.isCurrentPlayerChoosingFigure()).thenReturn(true);
 
             try {
                 chessLogic.playerTransformPawn(game.getCurrentPlayer(), game, figure);
                 fail();
-            } catch (final GameMoveException e) {}
+            } catch (final GameMoveException e) {
+            }
 
             verify(game, never()).transformPawn(any(ChessPlayer.class), any(ChessFigure.Type.class));
             verify(chessLogicObserver, never()).gameEnded(any(ChessGame.class), any(ChessPlayer.class));
@@ -97,8 +93,7 @@ public class ChessLogicImplTest
     }
 
     @Test
-    public void testPlayerTransformPawn_WhenGameEnded() throws Exception
-    {
+    public void testPlayerTransformPawn_WhenGameEnded() throws Exception {
         final ChessFigure.Type figure = ChessFigure.Type.Queen;
 
         when(game.isFinished()).thenReturn(true);
@@ -110,16 +105,14 @@ public class ChessLogicImplTest
     }
 
     @Test
-    public void testCheckGameForEndByTime_WhenTimeoutNotExpired() throws Exception
-    {
+    public void testCheckGameForEndByTime_WhenTimeoutNotExpired() throws Exception {
         chessLogic.checkGameForEndByTime(game);
 
         verifyThatNoChanges();
     }
 
     @Test
-    public void testCheckGameForEndByTime_WhenTimeoutExpired() throws Exception
-    {
+    public void testCheckGameForEndByTime_WhenTimeoutExpired() throws Exception {
         doGameExpired(game);
 
         chessLogic.checkGameForEndByTime(game);
@@ -130,8 +123,7 @@ public class ChessLogicImplTest
     }
 
     @Test
-    public void testCheckGameForEndByTime_WhenGameEnded() throws Exception
-    {
+    public void testCheckGameForEndByTime_WhenGameEnded() throws Exception {
         doGameExpired(game);
         when(game.isFinished()).thenReturn(true);
 
@@ -141,8 +133,7 @@ public class ChessLogicImplTest
     }
 
     @Test
-    public void testPlayerSurrender_WhenCurrentPlayerSurrender() throws Exception
-    {
+    public void testPlayerSurrender_WhenCurrentPlayerSurrender() throws Exception {
         final ChessPlayer winner = nextPlayer;
 
         chessLogic.playerSurrender(currentPlayer, game);
@@ -151,8 +142,7 @@ public class ChessLogicImplTest
     }
 
     @Test
-    public void testPlayerSurrender_WhenNextPlayerSurrender() throws Exception
-    {
+    public void testPlayerSurrender_WhenNextPlayerSurrender() throws Exception {
         final ChessPlayer winner = currentPlayer;
 
         chessLogic.playerSurrender(nextPlayer, game);
@@ -161,8 +151,7 @@ public class ChessLogicImplTest
     }
 
     @Test
-    public void testPlayerSurrender_WhenGameEnded() throws Exception
-    {
+    public void testPlayerSurrender_WhenGameEnded() throws Exception {
         when(game.isFinished()).thenReturn(true);
 
         chessLogic.playerSurrender(currentPlayer, game);
@@ -170,31 +159,27 @@ public class ChessLogicImplTest
         verifyThatNoChanges();
     }
 
-    private void verifyWhenPlayerSurrender(final ChessPlayer winner) throws NoNextPlayerFoundException
-    {
+    private void verifyWhenPlayerSurrender(final ChessPlayer winner) throws NoNextPlayerFoundException {
         verify(game, times(1)).end(eq(winner), any(String.class));
         verify(chessLogicObserver, times(1)).gameEnded(eq(game), eq(winner));
         verify(chessLogicObserver, never()).gameChanged(any(ChessGame.class));
     }
 
-    private void doGameNotExpired(final ChessGame game)
-    {
+    private void doGameNotExpired(final ChessGame game) {
         final int MOVE_TIME_STARTED_AGO = 100;
         final long MOVE_TIME_LEFT = MOVE_TIME_STARTED_AGO * 2;
 
         setCurrentPlayerTimeout(game, MOVE_TIME_STARTED_AGO, MOVE_TIME_LEFT);
     }
 
-    private void doGameExpired(final ChessGame game)
-    {
+    private void doGameExpired(final ChessGame game) {
         final int MOVE_TIME_STARTED_AGO = 100;
         final long MOVE_TIME_LEFT = MOVE_TIME_STARTED_AGO / 2;
 
         setCurrentPlayerTimeout(game, MOVE_TIME_STARTED_AGO, MOVE_TIME_LEFT);
     }
 
-    private void setCurrentPlayerTimeout(final ChessGame game, final int moveTimeStartedAgo, final long moveTimeLeft)
-    {
+    private void setCurrentPlayerTimeout(final ChessGame game, final int moveTimeStartedAgo, final long moveTimeLeft) {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MILLISECOND, -moveTimeStartedAgo);
         Date moveStarted = cal.getTime();

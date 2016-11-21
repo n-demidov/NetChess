@@ -8,10 +8,13 @@ import java.util.Set;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
-public class InvitationsTest
-{
+public class InvitationsTest {
     private static final int STANDARD_INVITATIONS_FREQ_MANAGE_MINUTES = 1;
     private static final int STANDARD_INVITATIONS_TTL_MINUTES = 10;
     private static final int EXPIRED_INVITATIONS_TTL_MINUTES = -1;
@@ -22,22 +25,19 @@ public class InvitationsTest
     private User thinking;
 
     @Before
-    public void before() throws Exception
-    {
+    public void before() throws Exception {
         createInvitations(STANDARD_INVITATIONS_TTL_MINUTES, STANDARD_INVITATIONS_FREQ_MANAGE_MINUTES);
     }
 
     @Test
-    public void testAddListener() throws Exception
-    {
+    public void testAddListener() throws Exception {
         invitations.notifySubscribers(inviter, thinking);
 
         verify(invitationsObserver, times(1)).usersAgreed(inviter, thinking);
     }
 
     @Test
-    public void testRemoveListener() throws Exception
-    {
+    public void testRemoveListener() throws Exception {
         invitations.removeListener(invitationsObserver);
 
         invitations.notifySubscribers(inviter, thinking);
@@ -46,16 +46,14 @@ public class InvitationsTest
     }
 
     @Test
-    public void testIsInvited() throws Exception
-    {
+    public void testIsInvited() throws Exception {
         invitations.invite(inviter, thinking);
 
         assertTrue(invitations.isInvited(inviter, thinking));
     }
 
     @Test
-    public void testGetIncomingInviters() throws Exception
-    {
+    public void testGetIncomingInviters() throws Exception {
         final int INVITERS_COUNT = 3;
         invitations.invite(inviter, thinking);
         invitations.invite(mock(User.class), thinking);
@@ -67,16 +65,14 @@ public class InvitationsTest
     }
 
     @Test
-    public void testGetIncomingInviters_WhenEmpty() throws Exception
-    {
+    public void testGetIncomingInviters_WhenEmpty() throws Exception {
         final Set<User> incomingInviters = invitations.getIncomingInviters(thinking);
 
         assertTrue(incomingInviters.isEmpty());
     }
 
     @Test
-    public void testUsersAgreed_WhenBothInvites() throws Exception
-    {
+    public void testUsersAgreed_WhenBothInvites() throws Exception {
         invitations.invite(inviter, thinking);
         invitations.invite(thinking, inviter);
 
@@ -85,8 +81,7 @@ public class InvitationsTest
     }
 
     @Test
-    public void testAcceptIncomingInvite() throws Exception
-    {
+    public void testAcceptIncomingInvite() throws Exception {
         invitations.invite(inviter, thinking);
         invitations.acceptIncomingInvite(inviter, thinking);
 
@@ -95,16 +90,14 @@ public class InvitationsTest
     }
 
     @Test
-    public void testAcceptIncomingInvite_WhenNoInvites() throws Exception
-    {
+    public void testAcceptIncomingInvite_WhenNoInvites() throws Exception {
         invitations.acceptIncomingInvite(inviter, thinking);
 
         verify(invitationsObserver, never()).usersAgreed(any(User.class), any(User.class));
     }
 
     @Test
-    public void testAcceptIncomingInvite_WhenInviterInvitesThinkingWhichNo() throws Exception
-    {
+    public void testAcceptIncomingInvite_WhenInviterInvitesThinkingWhichNo() throws Exception {
         invitations.acceptIncomingInvite(inviter, thinking);
         invitations.acceptIncomingInvite(thinking, inviter);
 
@@ -112,8 +105,7 @@ public class InvitationsTest
     }
 
     @Test
-    public void testCancelInvite() throws Exception
-    {
+    public void testCancelInvite() throws Exception {
         invitations.invite(inviter, thinking);
         invitations.cancelInvite(inviter, thinking);
         invitations.acceptIncomingInvite(inviter, thinking);
@@ -122,8 +114,7 @@ public class InvitationsTest
     }
 
     @Test
-    public void testRejectIncomingInvite() throws Exception
-    {
+    public void testRejectIncomingInvite() throws Exception {
         invitations.invite(inviter, thinking);
         invitations.rejectIncomingInvite(inviter, thinking);
         invitations.acceptIncomingInvite(inviter, thinking);
@@ -132,8 +123,7 @@ public class InvitationsTest
     }
 
     @Test
-    public void testCheckTtls_WhenInvitationsNotExpired() throws Exception
-    {
+    public void testCheckTtls_WhenInvitationsNotExpired() throws Exception {
         final int INVITERS_COUNT = 3;
 
         invitations.invite(inviter, thinking);
@@ -150,8 +140,7 @@ public class InvitationsTest
     }
 
     @Test
-    public void testCheckTtls_WhenInvitationsExpired() throws Exception
-    {
+    public void testCheckTtls_WhenInvitationsExpired() throws Exception {
         final int INVITERS_COUNT = 3;
 
         createInvitations(
@@ -171,8 +160,7 @@ public class InvitationsTest
         assertTrue(incomingInviters.isEmpty());
     }
 
-    private void createInvitations(final int standartInvitationsTtlMinutes, final int standartInvitationsFreqManageMinutes)
-    {
+    private void createInvitations(final int standartInvitationsTtlMinutes, final int standartInvitationsFreqManageMinutes) {
         inviter = mock(User.class);
         thinking = mock(User.class);
 

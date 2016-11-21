@@ -10,8 +10,8 @@ import edu.demidov.netchess.utils.Point;
 
 import java.util.List;
 
-public interface ChessLogic extends ChessLogicObservable
-{
+public interface ChessLogic extends ChessLogicObservable {
+
     ChessGame startGame(List<ChessPlayer> chessPlayers);
 
     void playerMoveFigure(ChessPlayer player, ChessGame game, Point fromPoint, Point toPoint)
@@ -27,4 +27,5 @@ public interface ChessLogic extends ChessLogicObservable
     void checkGameForEndByTime(ChessGame game) throws NoNextPlayerFoundException;
 
     void setChessRules(ChessRules chessRules);
+
 }
