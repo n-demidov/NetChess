@@ -332,5 +332,5 @@ public class ChessLogicImpl implements ChessLogic {
             throw new GameMoveException(UNKNOWN_FIGURE_TYPE_EXCEPTION);
         }
     }
-    
+
 }
