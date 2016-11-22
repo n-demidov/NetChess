@@ -63,8 +63,15 @@ public class ChessField implements Serializable {
     }
 
     public ChessFigure getFigure(final Point point) throws InvalidPointException {
-        if (!checkPoint(point)) throw new InvalidPointException();
+        if (!checkPoint(point)) {
+            throw new InvalidPointException();
+        }
+
         return field[point.getX()][point.getY()];
+    }
+
+    public ChessFigure getFigure(final int x, final int y) throws InvalidPointException {
+        return getFigure(new Point(x, y));
     }
 
     public void setFigure(final Point point, final ChessFigure figure)

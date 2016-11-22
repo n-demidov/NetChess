@@ -125,8 +125,8 @@ public class ChessRulesImpl implements ChessRules {
     @Override
     public boolean isCheckForPlayer(final ChessColor color, final ChessField field) throws NoKingOnFieldException {
         log.trace("isCheckForPlayer color={}, field={}", color, field);
-        // Находим позицию короля игрока
-        final Point playerKingCell = findKingOnField(color, field);
+
+        final Point playerKingCell = findKingPosition(color, field);
         return isCellUnderAttack(playerKingCell, color, field);
     }
 
@@ -198,9 +198,10 @@ public class ChessRulesImpl implements ChessRules {
     }
 
     // Проверяет находится ли указанная клетка (на шахматном поле) под атакой одной из фигур оппонента
-    private boolean isCellUnderAttack(final Point pointUnderAttack,
-                                      final ChessColor color, final ChessField field) {
+    private boolean isCellUnderAttack(final Point pointUnderAttack, final ChessColor color,
+                                      final ChessField field) {
         log.trace("isCellUnderAttack pointUnderAttack={}, color={}, field={}", pointUnderAttack, color, field);
+
         try {
             for (int i = 0; i < field.getFieldSize(); i++) {
                 for (int j = 0; j < field.getField()[i].length; j++) {
@@ -215,7 +216,9 @@ public class ChessRulesImpl implements ChessRules {
 
                         // Проверяем не находится ли указанная клетка в одной из клеток, которые атакует вражеская фигура
                         for (final Point attackedCell : attackedCells) {
-                            if (pointUnderAttack.equals(attackedCell)) return true;
+                            if (pointUnderAttack.equals(attackedCell)) {
+                                return true;
+                            }
                         }
                     }
                 }
@@ -228,16 +231,18 @@ public class ChessRulesImpl implements ChessRules {
     }
 
     // Находит короля на доске
-    private Point findKingOnField(final ChessColor color, final ChessField field) throws NoKingOnFieldException {
-        log.trace("findKingOnField color={}, field={}", color, field);
+    private Point findKingPosition(final ChessColor color, final ChessField field) throws NoKingOnFieldException {
+        log.trace("findKingPosition color={}, field={}", color, field);
+
         try {
             for (int i = 0; i < field.getFieldSize(); i++) {
                 for (int j = 0; j < field.getField()[i].length; j++) {
-                    final Point point = new Point(i, j);
-                    final ChessFigure figure = field.getFigure(point);
-                    if (figure != null && figure.getType() == ChessFigure.Type.King &&
-                            figure.getColor() == color) {
-                        return point;
+                    final Point p = new Point(i, j);
+                    final ChessFigure figure = field.getFigure(p);
+
+                    if (figure != null && figure.getColor() == color &&
+                            figure.getType() == ChessFigure.Type.King ) {
+                        return p;
                     }
                 }
             }
@@ -322,11 +327,12 @@ public class ChessRulesImpl implements ChessRules {
         try {
             // Двигаемся до тех пор, пока не упрёмся в фигуру, или не выйдем за рамки поля
             for (int x = figurePosition.getX() + deltaX, y = figurePosition.getY() + deltaY;
-                 x < field.getFieldSize(); x += deltaX, y += deltaY) {
+                 x < field.getFieldSize();
+                 x += deltaX, y += deltaY) {
                 final Point point = new Point(x, y);
 
                 // Сначала загрузим фигуру по этой точке - проверим клетку на корректность
-                final ChessFigure otherFigure = field.getFigure(point);
+                final ChessFigure otherFigure = field.getFigure(x, y);
                 
                 /* Если otherFigure своего цвета - то ни бить, ни ходить туда мы не можем
                 Если же цвета оппонента - то бить и ходить туда мы можем

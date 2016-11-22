@@ -53,7 +53,6 @@ public class ChessLogicImplTest {
         assertEquals(game.getNextPlayer(nextPlayer), currentPlayer);
     }
 
-
     @Test
     public void testPlayerTransformPawn_WhenGoodFigures() throws Exception {
         final List<ChessFigure.Type> figures = new ArrayList<>(Arrays.asList(
