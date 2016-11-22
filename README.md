@@ -1,32 +1,36 @@
 ﻿NetChess
 ========
-NetChess - шахматное приложение для сетевой игры между несколькими игроками.
 
-(NetChess - a client-server application for Player vs Player games)
+#### Description
 
-Картинки игры можно посмотреть в папке `/screenshots`.
+NetChess - a client-server chess application for Player vs Player games.
+Clients are represented as Desktop UI apps which connects to the multiplayer server.
 
-Техническое задание описано в файле `ТЗ 6.Game Server.doc`.
+You can see screenshots in `/screenshots` directory.
 
-Рокировка = короля на две клетки в сторону.
+The technical task is described in file `ТЗ 6.Game Server ru.doc`.
 
-####Технические детали:
-Программа написана на Java 1.8.
+Castling = move king 2 cells at side.
 
-Использованы следующие технологии: Netty, JavaFX, Maven, JUnit4, Mockito.
+#### Technologies
 
-Применены следующие шаблоны: Observer (`classes InvitationManager`, `GameChangedObservable`), Decorator (`class ConnectionManager`), Singleton.
+Key technologies: Java SE, JavaFX.
 
-####Для запуска:
-Программа состоит из 4 проектов: серверной части (`NetChessServer`), клиентской части (`NetChessClient`), самих шахмат (`NetChessGame`) и общей библиотеки (`NetChessCommon`). Для удобства также добавлен `NetChessParent` - мультимодульный Maven-проект.
+Also were used: Netty, JUnit, Mockito, Maven.
 
-1) Откройте проект `NetChessParent` в IDE (например, NetBeans).
+#### How to run
 
-2) Соберите `NetChessParent` средствами IDE для работы с Maven. Другой вариант - собрать из командной строки - перейдите в папку, где находится нужный (parent) pom.xml (`.../NetChess/NetChessParent/`), затем выполните команду `mvn clean install`.
+The project consists of 4 modules: server (`NetChessServer`), client (`NetChessClient`), chess (`NetChessGame`) and common library (`NetChessCommon`).
+`NetChessParent` - is a parent Maven-project.
 
-При этом все три проекта соберутся в нужной последовательности (сначала соберётся общая библиотека).
-
-3) Запустите сервер и несколько клиентов. Если потребуется - укажите main классы. По умолчанию ip-адрес настроен на 127.0.0.1 и порт 22222.
+1. Open `NetChessParent` in IDE (e.g., NetBeans).
+2. Build `NetChessParent` using your IDE or Maven CLI commands (e.g., `mvn clean install`).
+3. Run server and several clients. By default, the server starts on 127.0.0.1 and port is 22222.
 
 P.S.
-Code Conventions http://www.oracle.com/technetwork/java/codeconvtoc-136057.html , единственное отличие, что открывающая скобка с новой строки.
+Code Conventions http://www.oracle.com/technetwork/java/codeconvtoc-136057.html
+The only difference is that the opening brace starts from a new line.
+
+##### Dates
+
+It was written in Spring of 2016.

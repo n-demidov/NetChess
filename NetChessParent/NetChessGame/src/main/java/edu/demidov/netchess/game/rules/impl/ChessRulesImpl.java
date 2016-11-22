@@ -116,11 +116,6 @@ public class ChessRulesImpl implements ChessRules {
 
     /**
      * Проверяет поставлен ли игроку шах
-     *
-     * @param color
-     * @param field
-     * @return
-     * @throws NoKingOnFieldException
      */
     @Override
     public boolean isCheckForPlayer(final ChessColor color, final ChessField field) throws NoKingOnFieldException {
@@ -133,11 +128,6 @@ public class ChessRulesImpl implements ChessRules {
     /**
      * Проверяет остался ли у игрока хотя бы один допустимый ход.
      * Проверяется для игрока указанного цвета.
-     *
-     * @param color
-     * @param field ception
-     * @return
-     * @throws NoKingOnFieldException
      */
     @Override
     public boolean isNoMoreMoves(final ChessColor color, final ChessField field) throws NoKingOnFieldException {
@@ -171,11 +161,6 @@ public class ChessRulesImpl implements ChessRules {
 
     /**
      * Возвращает коллекцию предполагаемо возможных ходов фигуры
-     *
-     * @param figure
-     * @param figurePos
-     * @param field
-     * @return
      */
     private Collection<Point> getFigureMoveCells(final ChessFigure figure,
                                                  final Point figurePos, final ChessField field) {

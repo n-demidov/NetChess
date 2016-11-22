@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
     
     <name>NetChess Parent Project</name>
-    <description>The parent project for group of NetChess apps</description>
+    <description>The parent project for group of NetChess apps.</description>
     
     <modules>
         <module>NetChessCommon</module>
