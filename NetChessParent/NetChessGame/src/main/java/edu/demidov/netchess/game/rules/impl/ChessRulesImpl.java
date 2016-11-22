@@ -1,5 +1,6 @@
 package edu.demidov.netchess.game.rules.impl;
 
+import com.google.common.collect.ImmutableSet;
 import edu.demidov.netchess.common.model.exceptions.game.chess.GameMoveException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.InvalidBoardSizeException;
 import edu.demidov.netchess.common.model.exceptions.game.chess.InvalidPointException;
@@ -16,14 +17,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Класс отвечает за проверку шахматных правил
+ * Class is responsible for the check of chess rules.
  */
 public class ChessRulesImpl implements ChessRules {
 
-    private static final Point[] DELTA_KNIGHT_MOVES;                        // Смещения возможных ходов коня
-    private static final Point[] FORWARD_VECTOR_ATTACK_OFFSETS;             // Смещения для прямых линий
-    private static final Point[] DIAGONAL_VECTOR_ATTACK_OFFSETS;            // Смещения для диагональных линий
-    private static final int WHITE_PAWN_LINE = 6, BLACK_PAWN_LINE = 1;      // С каких полей пешка может пройти вперёд на 2 клетки
+    private static final ImmutableSet<Point> DELTA_KNIGHT_MOVES;                // Смещения возможных ходов коня
+    private static final ImmutableSet<Point> FORWARD_VECTOR_ATTACK_OFFSETS;     // Смещения для прямых линий
+    private static final ImmutableSet<Point> DIAGONAL_VECTOR_ATTACK_OFFSETS;    // Смещения для диагональных линий
+    private static final int WHITE_PAWN_LINE = 6, BLACK_PAWN_LINE = 1;          // С каких полей пешка может пройти вперёд на 2 клетки
 
     private static final String ILLEGAL_MOVE_EXCEPTION = "Неверный ход";
     private static final String SAME_CELL_EXCEPTION = "Нельзя ходить в ту же клетку";
@@ -34,46 +35,45 @@ public class ChessRulesImpl implements ChessRules {
     private static final Logger log = LoggerFactory.getLogger(ChessRulesImpl.class);
 
     static {
-        DELTA_KNIGHT_MOVES = new Point[8];
-        DELTA_KNIGHT_MOVES[0] = new Point(1, -2);
-        DELTA_KNIGHT_MOVES[1] = new Point(2, -1);
-        DELTA_KNIGHT_MOVES[2] = new Point(1, 2);
-        DELTA_KNIGHT_MOVES[3] = new Point(2, 1);
+        DELTA_KNIGHT_MOVES = ImmutableSet.of(
+                new Point(1, -2),
+                new Point(2, -1),
+                new Point(1, 2),
+                new Point(2, 1),
 
-        DELTA_KNIGHT_MOVES[4] = new Point(-1, 2);
-        DELTA_KNIGHT_MOVES[5] = new Point(-2, 1);
-        DELTA_KNIGHT_MOVES[6] = new Point(-2, -1);
-        DELTA_KNIGHT_MOVES[7] = new Point(-1, -2);
+                new Point(-1, 2),
+                new Point(-2, 1),
+                new Point(-2, -1),
+                new Point(-1, -2));
 
-        FORWARD_VECTOR_ATTACK_OFFSETS = new Point[4];
-        FORWARD_VECTOR_ATTACK_OFFSETS[0] = new Point(0, -1);
-        FORWARD_VECTOR_ATTACK_OFFSETS[1] = new Point(0, 1);
-        FORWARD_VECTOR_ATTACK_OFFSETS[2] = new Point(-1, 0);
-        FORWARD_VECTOR_ATTACK_OFFSETS[3] = new Point(1, 0);
+        FORWARD_VECTOR_ATTACK_OFFSETS = ImmutableSet.of(
+                new Point(0, -1),
+                new Point(0, 1),
+                new Point(-1, 0),
+                new Point(1, 0));
 
-        DIAGONAL_VECTOR_ATTACK_OFFSETS = new Point[4];
-        DIAGONAL_VECTOR_ATTACK_OFFSETS[0] = new Point(1, 1);
-        DIAGONAL_VECTOR_ATTACK_OFFSETS[1] = new Point(1, -1);
-        DIAGONAL_VECTOR_ATTACK_OFFSETS[2] = new Point(-1, 1);
-        DIAGONAL_VECTOR_ATTACK_OFFSETS[3] = new Point(-1, -1);
+        DIAGONAL_VECTOR_ATTACK_OFFSETS = ImmutableSet.of(
+                new Point(1, 1),
+                new Point(1, -1),
+                new Point(-1, 1),
+                new Point(-1, -1));
     }
 
     @Override
     public boolean isMoveCorrect(final ChessColor color, final ChessField field,
                                  final Point fromPoint, final Point toPoint) throws GameMoveException, NoKingOnFieldException {
         log.debug("isMoveCorrect color={}, field={}, fromPoint={}, toPoint={}", color, field, fromPoint, toPoint);
+
         try {
             final ChessFigure figure = field.getFigure(fromPoint);
 
             // Проверяем своей ли фигурой ходит игрок
             if (figure == null || !figure.getColor().equals(color)) {
-                log.trace(NOT_YOUR_FIGURE_EXCEPTION);
                 throw new GameMoveException(NOT_YOUR_FIGURE_EXCEPTION);
             }
 
             // Нельзя ходить в ту же клетку
             if (fromPoint.equals(toPoint)) {
-                log.trace(SAME_CELL_EXCEPTION);
                 throw new GameMoveException(SAME_CELL_EXCEPTION);
             }
             
